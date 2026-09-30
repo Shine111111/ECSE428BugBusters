@@ -4,7 +4,7 @@ As a new visitor of the app
 I want to create a user account with my email and a password
 So that I can then login with my credentials and access to the main page
 
-Scenario Outline: New user successfully creates an account
+Scenario Outline: New user successfully creates an account (Normal Flow)
 
         Given no account exists with the email <email>
         When a user submits <name>, <email> and <password> to create an account
