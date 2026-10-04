@@ -87,3 +87,18 @@ Feature: Create a Review/Rating
     Examples:
       | stars |
       | 4     |
+
+
+  Scenario Outline: Reject a duplicate rating for the same movie (Error Flow)
+    Given "Hamza" has rated "Cars2" with <original_stars> stars
+    And "Hamza"'s review of "Cars2" has the text "<original_review>"
+    When "Hamza" submits a new rating of <new_stars> stars for "Cars2" with the review text "<new_review>"
+    Then the new rating and review are rejected
+    And "Hamza" is informed that he has already rated this movie
+    And "Hamza"'s rating of "Cars2" remains <original_stars> stars
+    And "Hamza"'s review of "Cars2" still has the text "<original_review>"
+    And only one rating by "Hamza" exists for "Cars2"
+
+    Examples:
+      | original_stars | original_review | new_stars | new_review |
+      | 4              | Great movie     | 2         | Too slow   |
