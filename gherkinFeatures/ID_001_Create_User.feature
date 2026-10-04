@@ -9,10 +9,12 @@ Scenario Outline: New user successfully creates an account (Normal Flow)
         Given no account exists with the email <email>
         When a user submits <name>, <email> and <password> to create an account
         Then a new <user_id>, <name>, <email> and initial <password> are generated.
-| name              | email                 | password      | user_id |
-| John Doe          | john.doe@gmail.com    | Quack123#     | 0001    |
-| John Dough        | john.dough@gmail.com  | Dough123#     | 0002    |
-| John Duck         | john.duck@gmail.com   | Duck123#      | 0003    |
+
+        Examples:
+        | name              | email                 | password      | user_id |
+        | John Doe          | john.doe@gmail.com    | Quack123#     | 0001    |
+        | John Dough        | john.dough@gmail.com  | Dough123#     | 0002    |
+        | John Duck         | john.duck@gmail.com   | Duck123#      | 0003    |
 
 Scenario Outline: User attempts to register with an email that already exists in the system (Error Flow)
 
@@ -21,8 +23,9 @@ Scenario Outline: User attempts to register with an email that already exists in
         Then an "Email already registered" message is shown
         And no new account is created
 
-| name              | email                 | password  |
-| John Doe          | john.doe@gmail.com    | Quack123# |
+        Examples:
+        | name              | email                 | password  |
+        | John Doe          | john.doe@gmail.com    | Quack123# |
 
 Scenario Outline: User attempts to register with an invalid email format (Error Flow)
 
@@ -31,8 +34,9 @@ Scenario Outline: User attempts to register with an invalid email format (Error 
         Then an "Invalid email format" message is shown
         And no new account is created
 
-| name              | email                 | password  |
-| John Duck         | john.duck.gmail.com   | Duck123#  |
+        Examples:
+        | name              | email                 | password  |
+        | John Duck         | john.duck.gmail.com   | Duck123#  |
 
 Scenario Outline: User attempts to register with a password that does not meet requirements (Error Flow)
 
@@ -41,5 +45,6 @@ Scenario Outline: User attempts to register with a password that does not meet r
         Then a "Password does not meet requirements" message is shown
         And no new account is created
 
-| name              | email                 | password |
-| John Dough        | john.dough@gmail.com  | Quack    |
+        Examples:
+        | name              | email                 | password |
+        | John Dough        | john.dough@gmail.com  | Quack    |
