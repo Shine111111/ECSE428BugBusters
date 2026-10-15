@@ -1,0 +1,24 @@
+# Ignore Kotlin plugin data
+.kotlin
+
+# ==========================================
+# Gradle & Build Outputs
+# ==========================================
+.gradle/
+build/
+backend/build/
+bin/
+out/
+
+# Gradle configuration cache and daemon logs
+.gradletasknamecache
+
+# ==========================================
+# macOS System Files
+# ==========================================
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
