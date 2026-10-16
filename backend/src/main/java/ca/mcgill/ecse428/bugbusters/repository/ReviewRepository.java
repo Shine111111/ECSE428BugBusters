@@ -23,9 +23,29 @@ public class ReviewRepository {
 
     public List<Review> findByMovie(String movieId) {
         List<Review> result = new ArrayList<>();
-
         for (Review review : reviews.values()) {
             if (review.getMovieId().equals(movieId)) {
+                result.add(review);
+            }
+        }
+        return result;
+    }
+
+    public List<Review> findByUser(String userId) {
+        List<Review> result = new ArrayList<>();
+        for (Review review : reviews.values()) {
+            if (review.getUserId().equals(userId)) {
+                result.add(review);
+            }
+        }
+        return result;
+    }
+
+    public List<Review> findByMovieAndRating(String movieId, int rating) {
+        List<Review> result = new ArrayList<>();
+        for (Review review : reviews.values()) {
+            if (review.getMovieId().equals(movieId)
+                    && review.getRating() == rating) {
                 result.add(review);
             }
         }

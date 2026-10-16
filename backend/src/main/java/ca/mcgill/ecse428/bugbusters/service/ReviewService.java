@@ -6,7 +6,6 @@ import java.util.List;
 
 public class ReviewService {
     private final ReviewRepository repository;
-
     public ReviewService(ReviewRepository repository) {
         this.repository = repository;
     }
@@ -30,8 +29,7 @@ public class ReviewService {
     }
 
     //Updates an existing rating/review
-    public void updateReview(String userId, String movieId,
-                             int rating, String reviewText) {
+    public void updateReview(String userId, String movieId, int rating, String reviewText) {
         Review existing = repository.findByUserAndMovie(userId, movieId);
         if (existing == null) {
             throw new IllegalArgumentException("Review does not exist");
@@ -42,6 +40,19 @@ public class ReviewService {
         existing.setRating(rating);
         existing.setReviewText(reviewText);
         repository.save(existing);
+    }
+
+    //Retrieves a user's rating/review history
+    public List<Review> getReviewsForUser(String userId) {
+        return repository.findByUser(userId);
+    }
+
+    //Retrieves ratings/reviews for a movie with the given star rating
+    public List<Review> getReviewsForMovieByRating(String movieId, int rating) {
+        if (rating < 1 || rating > 5) {
+            throw new IllegalArgumentException("Rating must be between 1 and 5");
+        }
+        return repository.findByMovieAndRating(movieId, rating);
     }
 
     private void validateReview(Review review) {
