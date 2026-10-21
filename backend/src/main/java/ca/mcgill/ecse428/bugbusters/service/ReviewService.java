@@ -1,8 +1,9 @@
 package ca.mcgill.ecse428.bugbusters.service;
 
+import java.util.List;
+
 import ca.mcgill.ecse428.bugbusters.model.Review;
 import ca.mcgill.ecse428.bugbusters.repository.ReviewRepository;
-import java.util.List;
 
 public class ReviewService {
     private final ReviewRepository repository;
@@ -66,4 +67,16 @@ public class ReviewService {
             throw new IllegalArgumentException("Rating must be between 1 and 5");
         }
     }
+
+    public void deleteReview(String userId, String movieId) {
+
+        Review reviewToDelete = repository.findByUserAndMovie(userId, movieId);
+        if (reviewToDelete == null) {
+            throw new IllegalArgumentException("Review does not exist");
+        }
+        repository.deleteByUserAndMovie(userId, movieId);
+
+    }
+
+    
 }
