@@ -1,94 +1,35 @@
 package ca.mcgill.ecse428.bugbusters.repository;
 
 import ca.mcgill.ecse428.bugbusters.model.Movie;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-public class MovieRepository {
-    private final Map<String, Movie> moviesById = new HashMap<>();
+public interface MovieRepository extends JpaRepository<Movie, String> {
 
-    public void save(Movie movie) {
-        if (movie == null) {
-            throw new IllegalArgumentException("Movie cannot be null");
-        }
-        if (movie.getMovieId() == null || movie.getMovieId().isBlank()) {
-            throw new IllegalArgumentException("Movie ID cannot be null or blank");
-        }
-        moviesById.put(movie.getMovieId(), movie);
-    }
+    List<Movie> findByTitleContainingIgnoreCase(String title);
 
-    public Movie findById(String movieId) {
-        return moviesById.get(movieId);
-    }
+    List<Movie> findByGenreContainingIgnoreCase(String genre);
 
-    public List<Movie> getAll() {
-        return new ArrayList<>(moviesById.values());
-    }
+    List<Movie> findByStartYear(Integer startYear);
 
-    public List<Movie> findByTitle(String title) { // TID040 - Lucia
-        return filterByQuery(title, Movie::getTitle);
-        
-    }
+    List<Movie> findByRuntime(Integer runtime);
 
-    public List<Movie> findByDirector(String director) { // TID043 - Shayan
-        return filterByQuery(director, Movie::getDirector);
-    }
+    @Query("""
+        SELECT DISTINCT m
+        FROM Movie m
+        JOIN Role c ON c.movieId = m.movieId
+        JOIN Person p ON p.personId = c.personId
+        WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :personName, '%'))
+        """)
+    List<Movie> findMoviesByPersonNameContainingIgnoreCase(@Param("personName") String personName);
 
-    public List<Movie> findByActor(String actor) { // TID041 - Shayan
-        List<Movie> result = new ArrayList<>();
-        for (Movie movie : moviesById.values()) {
-            for (String a : movie.getActors()) {
-                if (matches(a, actor)) {
-                    result.add(movie);
-                    break;
-                }
-            }
-        }
-        return result;
-    }
-
-    public List<Movie> findByGenre(String genre) { // TID044 - Shayan
-        return filterByQuery(genre, Movie::getGenre);
-    }
-
-    public List<Movie> search(String criterion, String query) {
-        if (criterion == null || criterion.isBlank()) {
-            throw new IllegalArgumentException("Search criterion cannot be empty");
-        }
-
-        String normalizedCriterion = criterion.trim().toLowerCase(Locale.ROOT);
-        switch (normalizedCriterion) {
-            case "title":
-            case "name":
-                return findByTitle(query);
-            case "director":
-                return findByDirector(query);
-            case "actor":
-                return findByActor(query);
-            case "genre":
-                return findByGenre(query);
-            default:
-                throw new IllegalArgumentException("Unsupported search criterion: " + criterion);
-        }
-    }
-
-    private List<Movie> filterByQuery(String query, java.util.function.Function<Movie, String> extractor) {
-        List<Movie> result = new ArrayList<>();
-        for (Movie movie : moviesById.values()) {
-            if (matches(extractor.apply(movie), query)) {
-                result.add(movie);
-            }
-        }
-        return result;
-    }
-
-    private boolean matches(String fieldValue, String query) {
-        if (fieldValue == null || query == null) {
-            return false;
-        }
-        String normalizedField = fieldValue.trim().toLowerCase(Locale.ROOT);
-        String normalizedQuery = query.trim().toLowerCase(Locale.ROOT);
-        return !normalizedQuery.isEmpty() && normalizedField.contains(normalizedQuery);
-    }
+    @Query("""
+        SELECT m
+        FROM Movie m
+        WHERE LOWER(m.title) LIKE LOWER(CONCAT('%', :query, '%'))
+           OR LOWER(m.genre) LIKE LOWER(CONCAT('%', :query, '%'))
+        """)
+    List<Movie> searchMovies(@Param("query") String query);
 }
