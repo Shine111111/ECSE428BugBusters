@@ -1,15 +1,23 @@
 package ca.mcgill.ecse428.bugbusters.unit;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import ca.mcgill.ecse428.bugbusters.validation.EmailValidator;
+import ca.mcgill.ecse428.bugbusters.service.EmailValidator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullAndEmptySource;
 import org.junit.jupiter.params.provider.ValueSource;
 
-//Unit tests for the email validator
+// Unit test for the EmailValidator
 class EmailValidatorTest {
+
+    private void assertInvalidFormat(String email) {
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> EmailValidator.validate(email));
+        assertEquals("Invalid email format", e.getMessage());
+    }
 
     @ParameterizedTest
     @ValueSource(strings = {
@@ -17,49 +25,99 @@ class EmailValidatorTest {
             "john.dough@gmail.com",
             "john.duck@gmail.com",
             "JOHN.DOE@GMAIL.COM",
-            "john_doe+movies@mail.mcgill.ca",
-            "j@sub.domain.org",
+            "a@b.c",
+            "user@mail.mcgill.ca",
+            "first.last+tag@sub.domain.org",
             "john-doe123@my-domain.co"
     })
-    void acceptsValidEmails(String email) {
-        assertTrue(EmailValidator.isValid(email));
+    void acceptValidEmail(String email) {
+        assertDoesNotThrow(() -> EmailValidator.validate(email));
+    }
+
+    @ParameterizedTest
+    @NullAndEmptySource
+    void rejectMissingEmail(String email) {
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> EmailValidator.validate(email));
+        assertEquals("Email is required", e.getMessage());
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"john.duck.gmail.com", "johngmail.com"})
+    void rejectEmailWithoutAt(String email) {
+        assertInvalidFormat(email);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"john@doe@gmail.com", "john@@gmail.com"})
+    void rejectEmailWithMultipleAts(String email) {
+        assertInvalidFormat(email);
     }
 
     @Test
-    void rejectsEmailWithoutAtSign() {
-        assertFalse(EmailValidator.isValid("john.duck.gmail.com"));
+    void rejectEmailWithNothingBeforeAt() {
+        assertInvalidFormat("@gmail.com");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {".john@gmail.com", "john.@gmail.com", "john..doe@gmail.com"})
+    void rejectMisplacedDotsBeforeAt(String email) {
+        assertInvalidFormat(email);
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"user@", "user@com", "user@gmailcom"})
+    void rejectDomainWithoutDot(String email) {
+        assertInvalidFormat(email);
+    }
+
+    @Test
+    void rejectDotRightAfterAt() {
+        assertInvalidFormat("user@.com");
+    }
+
+    @Test
+    void rejectDotAtEnd() {
+        assertInvalidFormat("user@com.");
+    }
+
+    @Test
+    void rejectConsecutiveDotsInDomain() {
+        assertInvalidFormat("john@gmail..com");
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"john@-gmail.com", "john@gmail-.com", "john@gmail.-com"})
+    void rejectDomainLabelStartingOrEndingWithHyphen(String email) {
+        assertInvalidFormat(email);
     }
 
     @ParameterizedTest
     @ValueSource(strings = {
-            "@gmail.com",
-            "john.doe@",
-            "john.doe@gmail",
-            "john.doe@gmail.",
-            "john.doe@.com",
-            "john..doe@gmail.com",
-            ".john@gmail.com",
-            "john.@gmail.com",
-            "john@doe@gmail.com",
             "john doe@gmail.com",
-            "john.doe@gmail.c",
-            "john.doe@-gmail.com",
-            "john.doe@gmail-.com",
-            " john.doe@gmail.com",
-            "john.doe@gmail.com "
+            "john@gm ail.com",
+            " john@gmail.com",
+            "john@gmail.com ",
+            "john\t@gmail.com",
+            "   "
     })
-    void rejectsMalformedEmails(String email) {
-        assertFalse(EmailValidator.isValid(email));
-    }
-
-    @ParameterizedTest
-    @ValueSource(strings = {"", " ", "\t"})
-    void rejectsBlankEmails(String email) {
-        assertFalse(EmailValidator.isValid(email));
+    void rejectEmailWithWhitespace(String email) {
+        assertInvalidFormat(email);
     }
 
     @Test
-    void rejectsNullEmail() {
-        assertFalse(EmailValidator.isValid(null));
+    void acceptEmailOfExactlyMaxLength() {
+        String domain = "@gmail.com";
+        String email = "a".repeat(EmailValidator.MAX_LENGTH - domain.length()) + domain;
+        assertEquals(254, email.length());
+        assertDoesNotThrow(() -> EmailValidator.validate(email));
+    }
+
+    @Test
+    void rejectEmailLongerThanMaxLength() {
+        String domain = "@gmail.com";
+        String email = "a".repeat(EmailValidator.MAX_LENGTH - domain.length() + 1) + domain;
+        assertEquals(255, email.length());
+        assertInvalidFormat(email);
     }
 }

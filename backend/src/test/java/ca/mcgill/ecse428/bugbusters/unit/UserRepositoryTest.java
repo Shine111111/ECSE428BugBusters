@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
-//Unit tests for the user repository
+//Unit tests for the user repository / user schema (unique email constraint)
 class UserRepositoryTest {
     private UserRepository repository;
 
