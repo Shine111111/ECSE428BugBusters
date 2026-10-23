@@ -1,6 +1,9 @@
 # Ignore Kotlin plugin data
 .kotlin
 
+# SECRETS
+.env
+
 # ==========================================
 # Gradle & Build Outputs
 # ==========================================
