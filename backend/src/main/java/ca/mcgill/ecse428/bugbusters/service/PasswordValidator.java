@@ -1,19 +1,27 @@
-package ca.mcgill.ecse428.bugbusters.validation;
+package ca.mcgill.ecse428.bugbusters.service;
 
-//Checks a password against PasswordRequirements
 public final class PasswordValidator {
 
     private PasswordValidator() {
     }
 
-    public static boolean isValid(String password) {
+    // throws "Password does not meet requirements" if the password breaks any rule in PasswordRequirements
+    public static void validate(String password) {
+        if (!meetsRequirements(password)) {
+            throw new IllegalArgumentException(PasswordRequirements.ERROR_MESSAGE);
+        }
+    }
+
+    private static boolean meetsRequirements(String password) {
         if (password == null) {
             return false;
         }
+        // checks length
         int length = password.length();
         if (length < PasswordRequirements.MIN_LENGTH || length > PasswordRequirements.MAX_LENGTH) {
             return false;
         }
+        // checks character classes, rejecting any whitespace
         boolean hasUpper = false;
         boolean hasLower = false;
         boolean hasDigit = false;

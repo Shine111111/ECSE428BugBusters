@@ -1,4 +1,4 @@
-package ca.mcgill.ecse428.bugbusters.validation;
+package ca.mcgill.ecse428.bugbusters.service;
 
 //Password rules for account creation (ID001):
 //  - at least MIN_LENGTH and at most MAX_LENGTH characters
