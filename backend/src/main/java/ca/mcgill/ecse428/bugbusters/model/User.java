@@ -1,16 +1,42 @@
 package ca.mcgill.ecse428.bugbusters.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
+import java.util.Locale;
+
+// Emails are stored trimmed and lowercased so the unique constraint is case-insensitive
+@Entity
+@Table(name = "users", uniqueConstraints = @UniqueConstraint(name = "uk_users_email", columnNames = "email"))
 public class User {
-    private final String userId;
+
+    @Id
+    @Column(name = "user_id")
+    private String userId;
+
+    @Column(name = "name", nullable = false)
     private String name;
-    private final String email;
+
+    @Column(name = "email", nullable = false)
+    private String email;
+
+    @Column(name = "password", nullable = false)
     private String password;
+
+    protected User() {
+    }
 
     public User(String userId, String name, String email, String password) {
         this.userId = userId;
         this.name = name;
-        this.email = email;
+        this.email = normalizeEmail(email);
         this.password = password;
+    }
+
+    public static String normalizeEmail(String email) {
+        return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
     }
 
     public String getUserId() {
