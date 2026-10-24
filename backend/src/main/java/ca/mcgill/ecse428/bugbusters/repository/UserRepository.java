@@ -1,59 +1,18 @@
 package ca.mcgill.ecse428.bugbusters.repository;
 
 import ca.mcgill.ecse428.bugbusters.model.User;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
+import java.util.Optional;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 
-//In-memory user store; user_id is the primary key and email is unique (case-insensitive)
-public class UserRepository {
-    private final Map<String, User> usersById = new HashMap<>();
-    private final Map<String, String> userIdsByEmail = new HashMap<>();
+// users table: user_id is the primary key and email is unique (stored lowercased, see User)
+public interface UserRepository extends JpaRepository<User, String> {
 
-    private String emailKey(String email) {
-        return email.trim().toLowerCase(Locale.ROOT);
-    }
+    Optional<User> findByEmailIgnoreCase(String email);
 
-    public void save(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("User cannot be null");
-        }
-        if (user.getUserId() == null || user.getUserId().isBlank()) {
-            throw new IllegalArgumentException("User ID cannot be blank");
-        }
-        if (user.getEmail() == null || user.getEmail().isBlank()) {
-            throw new IllegalArgumentException("Email cannot be blank");
-        }
-        String key = emailKey(user.getEmail());
-        String ownerId = userIdsByEmail.get(key);
-        if (ownerId != null && !ownerId.equals(user.getUserId())) {
-            throw new IllegalArgumentException("Email already registered");
-        }
-        User previous = usersById.get(user.getUserId());
-        if (previous != null) {
-            userIdsByEmail.remove(emailKey(previous.getEmail()));
-        }
-        usersById.put(user.getUserId(), user);
-        userIdsByEmail.put(key, user.getUserId());
-    }
+    boolean existsByEmailIgnoreCase(String email);
 
-    public User findById(String userId) {
-        return usersById.get(userId);
-    }
-
-    public User findByEmail(String email) {
-        if (email == null) {
-            return null;
-        }
-        String userId = userIdsByEmail.get(emailKey(email));
-        return userId == null ? null : usersById.get(userId);
-    }
-
-    public boolean existsByEmail(String email) {
-        return findByEmail(email) != null;
-    }
-
-    public int count() {
-        return usersById.size();
-    }
+    // highest user_id as a number (user IDs are zero-padded digits, e.g. "0001"); null when there are no users
+    @Query("select max(cast(u.userId as Integer)) from User u")
+    Integer findMaxNumericUserId();
 }
