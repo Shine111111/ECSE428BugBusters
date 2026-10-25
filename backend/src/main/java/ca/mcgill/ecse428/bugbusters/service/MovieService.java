@@ -24,7 +24,8 @@ public class MovieService {
         return switch (normalizedCriterion) {
             case "title", "name" -> movieRepository.findByTitleContainingIgnoreCase(query);
             case "genre" -> movieRepository.findByGenreContainingIgnoreCase(query);
-            case "person", "actor", "cast" -> movieRepository.findMoviesByPersonNameContainingIgnoreCase(query);
+            case "actress", "actor", "cast" -> movieRepository.findMoviesByActorNameContainingIgnoreCase(query);
+            case "director" -> movieRepository.findMoviesByDirectorNameContainingIgnoreCase(query);
             default -> movieRepository.searchMovies(query);
         };
     }

@@ -30,6 +30,7 @@ dependencies {
     testImplementation platform('io.cucumber:cucumber-bom:7.18.0')
     testImplementation 'io.cucumber:cucumber-java'
     testImplementation 'io.cucumber:cucumber-junit-platform-engine'
+    testImplementation 'io.cucumber:cucumber-spring'
 }
 
 tasks.named('test') {

@@ -30,13 +30,13 @@ public class Movie {
     private BigDecimal ratings;
 
     @Column(name = "num_votes")
-    private Integer numVotes;
+    private Long numVotes;
 
     public Movie() {
     }
 
     public Movie(String movieId, String title, String genre, Integer startYear,
-                Integer runtime, BigDecimal ratings, Integer numVotes) {
+                Integer runtime, BigDecimal ratings, Long numVotes) {
         this.movieId = movieId;
         this.title = title;
         this.genre = genre;
