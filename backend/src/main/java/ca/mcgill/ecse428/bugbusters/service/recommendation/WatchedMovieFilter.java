@@ -5,10 +5,11 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * TODO TID055: Exclude movies whose IDs appear in watch history before any scoring.
+ * Excludes already watched movies by user from the recommended movies.
+ * Filtering occurs before calculation of recommendation scoring.
  */
 public class WatchedMovieFilter {
     public List<Movie> filterUnwatched(List<Movie> movies, Set<String> watchedMovieIds) {
-        throw new UnsupportedOperationException("TID055: WatchedMovieFilter is not implemented");
+        return movies.stream().filter(movie -> !watchedMovieIds.contains(movie.getId())).toList();
     }
 }
