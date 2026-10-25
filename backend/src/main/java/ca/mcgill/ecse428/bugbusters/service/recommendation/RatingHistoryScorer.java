@@ -1,18 +1,20 @@
 package ca.mcgill.ecse428.bugbusters.service.recommendation;
-
-import ca.mcgill.ecse428.bugbusters.model.Movie;
-import ca.mcgill.ecse428.bugbusters.model.Review;
-import java.util.List;
-import java.util.Map;
-
-/**
- * TODO TID057: Compare candidates with rated movie metadata. Ratings of 4 or 5
- * add 15 for shared genres and 10 for shared actors or directors; ratings of 1 or 2
- * subtract 20 and 15 respectively. Three-star ratings are neutral. Follow the feature
- * scenarios when deciding how overlapping matches accumulate.
- */
+import ca.mcgill.ecse428.bugbusters.model.*;
+import java.util.*;
 public class RatingHistoryScorer {
+    /** Each rated movie contributes once per matching category, even with multiple shared genres. */
     public double score(Movie movie, List<Review> reviews, Map<String, Movie> moviesById) {
-        throw new UnsupportedOperationException("TID057: RatingHistoryScorer is not implemented");
+        double score = 0;
+        for (Review review : reviews) {
+            if (review.getRating() < 1 || review.getRating() > 5)
+                throw new IllegalArgumentException("Rating must be between 1 and 5");
+            Movie rated = moviesById.get(review.getMovieId());
+            if (rated == null || review.getRating() == 3) continue;
+            boolean positive = review.getRating() >= 4;
+            if (!Collections.disjoint(movie.getGenres(), rated.getGenres())) score += positive ? 15 : -20;
+            if (!Collections.disjoint(movie.getActors(), rated.getActors())) score += positive ? 10 : -15;
+            if (Objects.equals(movie.getDirector(), rated.getDirector())) score += positive ? 10 : -15;
+        }
+        return score;
     }
 }
