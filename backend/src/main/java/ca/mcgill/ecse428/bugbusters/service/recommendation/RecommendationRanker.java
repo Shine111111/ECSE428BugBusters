@@ -1,15 +1,12 @@
 package ca.mcgill.ecse428.bugbusters.service.recommendation;
-
 import ca.mcgill.ecse428.bugbusters.dto.MovieRecommendationResponse;
-import java.util.List;
-
-/**
- * Sort by total score descending, average rating descending, view count descending,
- * then title ascending, as required by SID0021. TODO: Implement ranking; TID060 covers
- * scoring, filtering, ranking, and tie-breaking tests.
- */
+import java.util.*;
 public class RecommendationRanker {
     public List<MovieRecommendationResponse> rank(List<MovieRecommendationResponse> recommendations) {
-        throw new UnsupportedOperationException("SID0021: RecommendationRanker is not implemented");
+        return recommendations.stream().sorted(Comparator
+            .comparingDouble(MovieRecommendationResponse::getTotalScore).reversed()
+            .thenComparing(Comparator.comparingDouble((MovieRecommendationResponse r) -> r.getMovie().getAverageRating()).reversed())
+            .thenComparing(Comparator.comparingInt((MovieRecommendationResponse r) -> r.getMovie().getViewCount()).reversed())
+            .thenComparing(r -> r.getMovie().getTitle())).toList();
     }
 }

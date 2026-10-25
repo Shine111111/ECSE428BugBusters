@@ -42,11 +42,14 @@ public class RecommendationService {
 
     public List<MovieRecommendationResponse> getRecommendations(String userId) {
         
+        if (userId == null || userId.isBlank()) throw new IllegalArgumentException("User ID cannot be blank");
+
         // retrieve necessary data
         List<Movie> movies = dataProvider.getMovies();
         UserPreferences preferences = dataProvider.getPreferences(userId);
         List<Review> ratings = dataProvider.getRatings(userId);
-        Set<String> watchedMovieIds = dataProvider.getWatchedMovieIds(userId);
+        Set<String> watchedMovieIds = new java.util.HashSet<>(dataProvider.getWatchedMovieIds(userId));
+        ratings.forEach(review -> watchedMovieIds.add(review.getMovieId()));
         
         Map<String, Movie> moviesById = movies.stream().collect(Collectors.toMap(Movie::getId,Function.identity())); // all movies metadata
 
