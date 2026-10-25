@@ -31,6 +31,7 @@ dependencies {
     testImplementation 'io.cucumber:cucumber-java'
     testImplementation 'io.cucumber:cucumber-junit-platform-engine'
     testImplementation 'io.cucumber:cucumber-spring'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.named('test') {

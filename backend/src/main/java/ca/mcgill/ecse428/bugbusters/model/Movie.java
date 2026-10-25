@@ -94,11 +94,11 @@ public class Movie {
         this.ratings = ratings;
     }
 
-    public Integer getNumVotes() {
+    public Long getNumVotes() {
         return numVotes;
     }
 
-    public void setNumVotes(Integer numVotes) {
+    public void setNumVotes(Long numVotes) {
         this.numVotes = numVotes;
     }
 }
