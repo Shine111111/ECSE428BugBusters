@@ -78,5 +78,32 @@ public class ReviewService {
 
     }
 
-    
+    public Double getAverageRatingForMovie(String movieId) {
+        List<Review> reviews = repository.findByMovie(movieId);
+
+        // no reviews
+        if (reviews.isEmpty()) {
+            return null;
+        }
+
+        double total = 0;
+        for (Review review : reviews) {
+            total += review.getRating();
+        }
+        return total / reviews.size();
+    }
+
+    public Integer getTotalRatingCountForMovie(String movieId) {
+        List<Review> reviews = repository.findByMovie(movieId);
+        return reviews.size();
+    }
+
+    public void getAllRatingsForMovie(String movieId) {
+
+        List<Review> reviews = repository.findByMovie(movieId);
+        for (Review review : reviews) {
+            System.out.println("User: " + review.getUserId() + ", Rating: " + review.getRating() + ", Review: " + review.getReviewText());
+        }
+        
+    }
 }
