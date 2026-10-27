@@ -1,10 +1,11 @@
 package ca.mcgill.ecse428.bugbusters.repository;
 
-import ca.mcgill.ecse428.bugbusters.model.Review;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import ca.mcgill.ecse428.bugbusters.model.Review;
 
 public class ReviewRepository {
     private final Map<String, Review> reviews = new HashMap<>();
@@ -50,5 +51,9 @@ public class ReviewRepository {
             }
         }
         return result;
+    }
+
+    public void deleteByUserAndMovie(String userId, String movieId) {
+        reviews.remove(key(userId, movieId));
     }
 }
