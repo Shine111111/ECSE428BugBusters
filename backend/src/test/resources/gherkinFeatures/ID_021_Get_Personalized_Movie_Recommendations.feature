@@ -1,4 +1,5 @@
-Feature: Get personalized movie recommendations
+@SID0021
+Feature: SID0021 - Get personalized movie recommendations
 
   As a logged-in user
   I want to receive movie recommendations based on my preferences, ratings, and movie popularity
@@ -31,7 +32,7 @@ Feature: Get personalized movie recommendations
       | Pride and Prejudice | Romance, Drama         | Keira Knightley            | Joe Wright        | 4.1            | 700          | 100           | 3000       |
       | The Dark Knight     | Action, Crime          | Christian Bale             | Christopher Nolan | 4.8            | 2000         | 700           | 9000       |
 
-  Scenario: Rank recommendations using explicit user preferences and popularity
+  Scenario: SID0021 - Rank recommendations using explicit user preferences and popularity
     Given the user's favorite genres include "Science Fiction"
     And the user's favorite actors include "Ryan Gosling"
     And the user's favorite directors include "Denis Villeneuve"
@@ -45,7 +46,7 @@ Feature: Get personalized movie recommendations
     And "Blade Runner 2049" is ranked above "Arrival"
     And "Arrival" is ranked above "La La Land"
 
-  Scenario: Adjust recommendations based on the user's movie ratings
+  Scenario: SID0021 - Adjust recommendations based on the user's movie ratings
     Given the user has watched and rated "Arrival" 5 stars
     And the user has watched and rated "Pride and Prejudice" 2 stars
     When the user requests personalized movie recommendations
@@ -60,7 +61,7 @@ Feature: Get personalized movie recommendations
     And "Blade Runner 2049" is ranked above "The Dark Knight"
     And "The Dark Knight" is ranked above "La La Land"
 
-  Scenario: Use ratings and comments as popularity when the user has no personal signals
+  Scenario: SID0021 - Use ratings and comments as popularity when the user has no personal signals
     Given the user has no favorite genres
     And the user has no favorite actors
     And the user has no favorite directors
@@ -75,7 +76,7 @@ Feature: Get personalized movie recommendations
       | Arrival           | 20.2  |
     And "The Dark Knight" is the first recommendation
 
-  Scenario: Do not let popularity override a strong preference match
+  Scenario: SID0021 - Do not let popularity override a strong preference match
     Given the user's favorite genres include "Science Fiction"
     And the user has no watched movies
     When the user requests personalized movie recommendations
@@ -83,7 +84,7 @@ Feature: Get personalized movie recommendations
     And "Blade Runner 2049" is ranked above "The Dark Knight"
     And "Arrival" is ranked above "The Dark Knight"
 
-  Scenario: Exclude movies the user has already watched before scoring recommendations
+  Scenario: SID0021 - Exclude movies the user has already watched before scoring recommendations
     Given the user's favorite genres include "Science Fiction"
     And the user has watched "Arrival"
     And the user has watched "Blade Runner 2049"
@@ -93,7 +94,7 @@ Feature: Get personalized movie recommendations
     And the recommendations do not include "Blade Runner 2049"
     And "The Dark Knight" is the first recommendation
 
-  Scenario: Apply deterministic tie breakers when recommendation scores match
+  Scenario: SID0021 - Apply deterministic tie breakers when recommendation scores match
     Given the user has no favorite genres
     And the user has no favorite actors
     And the user has no favorite directors
