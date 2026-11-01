@@ -1,17 +1,18 @@
 package ca.mcgill.ecse428.bugbusters.unit;
 
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import ca.mcgill.ecse428.bugbusters.model.Review;
 import ca.mcgill.ecse428.bugbusters.repository.ReviewRepository;
 import ca.mcgill.ecse428.bugbusters.service.ReviewService;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
 
 class ReviewServiceStatsTest {
     private ReviewRepository repository;
@@ -24,32 +25,32 @@ class ReviewServiceStatsTest {
     }
 
     @Test
-    void averageIsNullWhenMovieHasNoReviews() {
+    void ID_008_averageIsNullWhenMovieHasNoReviews() {
         assertNull(service.getAverageRatingForMovie("Cars2"));
     }
 
     @Test
-    void averageOfSingleReviewIsThatRating() {
+    void ID_008_averageOfSingleReviewIsThatRating() {
         service.storeReview(new Review("Hamza", "Cars2", 4, null));
         assertEquals(4.0, service.getAverageRatingForMovie("Cars2"));
     }
 
     @Test
-    void averageCanBeFractional() {
+    void ID_008_averageCanBeFractional() {
         service.storeReview(new Review("Hamza", "Cars2", 4, null));
         service.storeReview(new Review("Robert", "Cars2", 5, null));
         assertEquals(4.5, service.getAverageRatingForMovie("Cars2"));
     }
 
     @Test
-    void averageIgnoresOtherMovies() {
+    void ID_008_averageIgnoresOtherMovies() {
         service.storeReview(new Review("Hamza", "Cars2", 2, null));
         service.storeReview(new Review("Hamza", "Up", 5, null));
         assertEquals(2.0, service.getAverageRatingForMovie("Cars2"));
     }
 
     @Test
-    void averageReflectsUpdatedAndDeletedReviews() {
+    void ID_008_averageReflectsUpdatedAndDeletedReviews() {
         service.storeReview(new Review("Hamza", "Cars2", 1, null));
         service.storeReview(new Review("Robert", "Cars2", 3, null));
         service.updateReview("Hamza", "Cars2", 5, null);
@@ -59,12 +60,12 @@ class ReviewServiceStatsTest {
     }
 
     @Test
-    void countIsZeroWhenMovieHasNoReviews() {
+    void ID_008_countIsZeroWhenMovieHasNoReviews() {
         assertEquals(0, service.getTotalRatingCountForMovie("Cars2"));
     }
 
     @Test
-    void countIncludesOnlyThatMovie() {
+    void ID_008_countIncludesOnlyThatMovie() {
         service.storeReview(new Review("Hamza", "Cars2", 4, null));
         service.storeReview(new Review("Robert", "Cars2", 2, null));
         service.storeReview(new Review("Hamza", "Up", 5, null));
@@ -72,7 +73,7 @@ class ReviewServiceStatsTest {
     }
 
     @Test
-    void countDecreasesAfterDelete() {
+    void ID_008_countDecreasesAfterDelete() {
         service.storeReview(new Review("Hamza", "Cars2", 4, null));
         service.storeReview(new Review("Robert", "Cars2", 2, null));
         service.deleteReview("Hamza", "Cars2");
@@ -80,7 +81,7 @@ class ReviewServiceStatsTest {
     }
 
     @Test
-    void getAllRatingsReturnsEveryReviewForMovie() {
+    void ID_008_getAllRatingsReturnsEveryReviewForMovie() {
         service.storeReview(new Review("Hamza", "Cars2", 4, "Fun"));
         service.storeReview(new Review("Robert", "Cars2", 2, null));
         service.storeReview(new Review("Hamza", "Up", 5, null));
@@ -91,7 +92,7 @@ class ReviewServiceStatsTest {
     }
 
     @Test
-    void getAllRatingsIsEmptyWhenMovieHasNoReviews() {
+    void ID_008_getAllRatingsIsEmptyWhenMovieHasNoReviews() {
         assertTrue(service.getAllRatingsForMovie("Cars2").isEmpty());
     }
 }
