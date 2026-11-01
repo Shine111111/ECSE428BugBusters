@@ -10,8 +10,9 @@ import static io.cucumber.junit.platform.engine.Constants.PLUGIN_PROPERTY_NAME;
 
 @Suite
 @IncludeEngines("cucumber")
-// Target only your feature file directly
+// Target only the feature files that have step definitions
 @SelectClasspathResource("gherkinFeatures/ID_016_Search_Movies.feature")
+@SelectClasspathResource("gherkinFeatures/ID_008_Create_Review_Rating.feature")
 @ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "ca.mcgill.ecse428.bugbusters.stepdefinitions")
 @ConfigurationParameter(key = PLUGIN_PROPERTY_NAME, value = "pretty, html:build/reports/cucumber/cucumber.html")
 public class RunCucumberTest {
