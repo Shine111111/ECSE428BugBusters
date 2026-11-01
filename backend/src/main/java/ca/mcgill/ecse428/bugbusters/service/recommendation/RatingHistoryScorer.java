@@ -13,7 +13,8 @@ public class RatingHistoryScorer {
             boolean positive = review.getRating() >= 4;
             if (!Collections.disjoint(movie.getGenres(), rated.getGenres())) score += positive ? 15 : -20;
             if (!Collections.disjoint(movie.getActors(), rated.getActors())) score += positive ? 10 : -15;
-            if (Objects.equals(movie.getDirector(), rated.getDirector())) score += positive ? 10 : -15;
+            if (movie.getDirector() != null && !movie.getDirector().isBlank()
+                    && Objects.equals(movie.getDirector(), rated.getDirector())) score += positive ? 10 : -15;
         }
         return score;
     }

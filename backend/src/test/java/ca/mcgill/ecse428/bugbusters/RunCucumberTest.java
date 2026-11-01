@@ -1,4 +1,4 @@
-package test.java.ca.mcgill.ecse428.bugbusters;
+package ca.mcgill.ecse428.bugbusters;
 
 import org.junit.platform.suite.api.ConfigurationParameter;
 import org.junit.platform.suite.api.IncludeEngines;
@@ -10,7 +10,8 @@ import static io.cucumber.junit.platform.engine.Constants.PLUGIN_PROPERTY_NAME;
 
 @Suite
 @IncludeEngines("cucumber")
-@SelectClasspathResource("gherkinFeatures")
+// Target only your feature file directly
+@SelectClasspathResource("gherkinFeatures/ID_016_Search_Movies.feature")
 @ConfigurationParameter(key = GLUE_PROPERTY_NAME, value = "ca.mcgill.ecse428.bugbusters.stepdefinitions")
 @ConfigurationParameter(key = PLUGIN_PROPERTY_NAME, value = "pretty, html:build/reports/cucumber/cucumber.html")
 public class RunCucumberTest {

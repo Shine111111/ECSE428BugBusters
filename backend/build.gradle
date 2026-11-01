@@ -6,6 +6,8 @@
  */
 plugins {
     id 'java'
+    id 'org.springframework.boot' version '3.3.4'
+    id 'io.spring.dependency-management' version '1.1.6'
 }
 
 repositories {
@@ -13,7 +15,11 @@ repositories {
 }
 
 dependencies {
-    implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'org.postgresql:postgresql'
+    testRuntimeOnly 'com.h2database:h2'
+
     // JUnit 5
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -25,6 +31,8 @@ dependencies {
     testImplementation platform('io.cucumber:cucumber-bom:7.18.0')
     testImplementation 'io.cucumber:cucumber-java'
     testImplementation 'io.cucumber:cucumber-junit-platform-engine'
+    testImplementation 'io.cucumber:cucumber-spring'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.named('test') {
@@ -40,6 +48,10 @@ tasks.register('recommendationAcceptanceTest', Test) {
 
     testClassesDirs = sourceSets.test.output.classesDirs
     classpath = sourceSets.test.runtimeClasspath
+
+    filter {
+        includeTestsMatching 'ca.mcgill.ecse428.bugbusters.RunRecommendationCucumberTest'
+    }
 
     useJUnitPlatform {
         includeEngines 'junit-platform-suite'

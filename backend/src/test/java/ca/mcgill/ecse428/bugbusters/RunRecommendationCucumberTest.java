@@ -1,5 +1,5 @@
 
-package test.java.ca.mcgill.ecse428.bugbusters;
+package ca.mcgill.ecse428.bugbusters;
 
 import org.junit.platform.suite.api.ConfigurationParameter;
 import org.junit.platform.suite.api.IncludeEngines;

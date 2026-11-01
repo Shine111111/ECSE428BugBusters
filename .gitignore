@@ -1,6 +1,9 @@
 # Ignore Kotlin plugin data
 .kotlin
 
+# SECRETS
+.env
+
 # ==========================================
 # Gradle & Build Outputs
 # ==========================================
@@ -22,3 +25,5 @@ out/
 ._*
 .Spotlight-V100
 .Trashes
+
+.vscode
