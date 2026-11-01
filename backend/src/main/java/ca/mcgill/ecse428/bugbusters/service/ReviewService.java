@@ -98,12 +98,8 @@ public class ReviewService {
         return reviews.size();
     }
 
-    public void getAllRatingsForMovie(String movieId) {
-
-        List<Review> reviews = repository.findByMovie(movieId);
-        for (Review review : reviews) {
-            System.out.println("User: " + review.getUserId() + ", Rating: " + review.getRating() + ", Review: " + review.getReviewText());
-        }
-        
+    //Retrieves all ratings/reviews for a movie
+    public List<Review> getAllRatingsForMovie(String movieId) {
+        return repository.findByMovie(movieId);
     }
 }
