@@ -5,6 +5,10 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import java.math.BigDecimal;
+import jakarta.persistence.Transient;
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "movies")
@@ -31,6 +35,41 @@ public class Movie {
 
     @Column(name = "num_votes")
     private Long numVotes;
+
+    // Recommendation-only metadata is not present in the catalog table.
+    @Transient
+    private Set<String> actors = Set.of();
+    @Transient
+    private String director;
+    @Transient
+    private int commentCount;
+    @Transient
+    private int viewCount;
+
+    public Movie(String id, String title, Set<String> genres, Set<String> actors,
+                 String director, double averageRating, int ratingCount, int commentCount, int viewCount) {
+        this(id, title, String.join(",", genres), null, null,
+                BigDecimal.valueOf(averageRating), (long) ratingCount);
+        this.actors = Set.copyOf(actors);
+        this.director = director;
+        this.commentCount = commentCount;
+        this.viewCount = viewCount;
+    }
+
+    public String getId() { return movieId; }
+    public Set<String> getGenres() {
+        if (genre == null || genre.isBlank()) return Set.of();
+        return Arrays.stream(genre.split(","))
+                .map(String::trim).filter(value -> !value.isEmpty()).collect(Collectors.toUnmodifiableSet());
+    }
+    public Set<String> getActors() { return actors; }
+    public String getDirector() { return director; }
+    public double getAverageRating() { return ratings == null ? 0 : ratings.doubleValue(); }
+    public int getRatingCount() {
+        return numVotes == null ? 0 : (int) Math.min(Integer.MAX_VALUE, numVotes);
+    }
+    public int getCommentCount() { return commentCount; }
+    public int getViewCount() { return viewCount; }
 
     public Movie() {
     }

@@ -71,3 +71,26 @@ tasks.withType(Test).configureEach {
         events "passed", "skipped", "failed"
     }
 }
+
+tasks.register('recommendationAcceptanceTest', Test) {
+    description = 'Run SID0021 recommendation acceptance tests'
+    group = 'verification'
+
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+
+    filter {
+        includeTestsMatching 'ca.mcgill.ecse428.bugbusters.RunRecommendationCucumberTest'
+    }
+
+    useJUnitPlatform {
+        includeEngines 'junit-platform-suite'
+    }
+
+    systemProperty 'cucumber.features',
+        'classpath:gherkinFeatures/ID_021_Get_Personalized_Movie_Recommendations.feature'
+
+    testLogging {
+        events 'passed', 'skipped', 'failed'
+    }
+}
