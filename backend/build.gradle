@@ -49,8 +49,9 @@ tasks.named('test') {
     useJUnitPlatform()
     // Pass Cucumber options from the command line to the tests, e.g.
     // -Dcucumber.features=classpath:gherkinFeatures/ID_001_Create_User.feature runs one feature only
-    System.properties.findAll { it.key.toString().startsWith('cucumber.') }.each { key, value ->
-        systemProperty key.toString(), value
+    // (read through providers so a changed -D option is not lost to the configuration cache)
+    providers.systemPropertiesPrefixedBy('cucumber.').get().each { key, value ->
+        systemProperty key, value
     }
     testLogging {
         events "passed", "skipped", "failed"
