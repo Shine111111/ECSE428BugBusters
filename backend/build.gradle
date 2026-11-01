@@ -47,6 +47,20 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// Runs only the Gherkin acceptance tests (no unit tests), e.g. for the acceptance-test video
+tasks.register('acceptanceTest', Test) {
+    description = 'Runs the Cucumber acceptance tests in src/test/resources/gherkinFeatures'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeEngines 'cucumber'
+    }
+}
+
+tasks.withType(Test).configureEach {
     // Pass Cucumber options from the command line to the tests, e.g.
     // -Dcucumber.features=classpath:gherkinFeatures/ID_001_Create_User.feature runs one feature only
     // (read through providers so a changed -D option is not lost to the configuration cache)
