@@ -31,7 +31,7 @@ public class Role {
         this.role = role;
     }
 
-    public String getMovifeId() {
+    public String getMovieId() {
         return movieId;
     }
 

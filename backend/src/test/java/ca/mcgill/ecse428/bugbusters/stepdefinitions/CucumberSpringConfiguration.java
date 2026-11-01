@@ -1,5 +1,6 @@
 package ca.mcgill.ecse428.bugbusters.stepdefinitions;
 
+import ca.mcgill.ecse428.bugbusters.BugBustersApplication;
 import io.cucumber.spring.CucumberContextConfiguration;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -9,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 // H2 database from src/test/resources/application.properties, never Supabase.
 // There must be exactly one @CucumberContextConfiguration class in this package.
 @CucumberContextConfiguration
-@SpringBootTest
+@SpringBootTest(classes = BugBustersApplication.class)
 @AutoConfigureMockMvc
 public class CucumberSpringConfiguration {
 }

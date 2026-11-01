@@ -24,7 +24,8 @@ public class MovieService {
         return switch (normalizedCriterion) {
             case "title", "name" -> movieRepository.findByTitleContainingIgnoreCase(query);
             case "genre" -> movieRepository.findByGenreContainingIgnoreCase(query);
-            case "person", "actor", "cast" -> movieRepository.findMoviesByPersonNameContainingIgnoreCase(query);
+            case "actress", "actor", "cast" -> movieRepository.findMoviesByActorNameContainingIgnoreCase(query);
+            case "director" -> movieRepository.findMoviesByDirectorNameContainingIgnoreCase(query);
             default -> movieRepository.searchMovies(query);
         };
     }
@@ -43,11 +44,12 @@ public class MovieService {
         return movieRepository.findByGenreContainingIgnoreCase(genre);
     }
 
-    public List<Movie> searchMoviesByPerson(String personName) {
-        if (personName == null || personName.isBlank()) {
-            throw new IllegalArgumentException("Search query cannot be empty");
-        }
-        return movieRepository.findMoviesByPersonNameContainingIgnoreCase(personName);
+    public List<Movie> searchMoviesByActor(String actorName) {
+        return searchMovies("actor", actorName);
+    }
+
+    public List<Movie> searchMoviesByDirector(String directorName) {
+        return searchMovies("director", directorName);
     }
 
     public Movie findMovieById(String movieId) {

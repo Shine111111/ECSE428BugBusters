@@ -6,6 +6,7 @@ import java.util.List;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -18,8 +19,9 @@ public class MovieController {
         this.movieService = movieService;
     }
 
-    @GetMapping("/title/{title}")
-    public List<Movie> searchByTitle(@PathVariable String title) {
-        return movieService.searchMoviesByTitle(title);
+    @GetMapping("/search")
+    public List<Movie> search(@RequestParam(required = false, defaultValue = "") String criterion,
+                              @RequestParam String query) {
+        return movieService.searchMovies(criterion, query);
     }
 }

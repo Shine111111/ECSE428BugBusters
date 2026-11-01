@@ -19,11 +19,22 @@ public interface MovieRepository extends JpaRepository<Movie, String> {
     @Query("""
         SELECT DISTINCT m
         FROM Movie m
-        JOIN Role c ON c.movieId = m.movieId
-        JOIN Person p ON p.personId = c.personId
-        WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :personName, '%'))
+        JOIN Role r ON r.movieId = m.movieId
+        JOIN Person p ON p.personId = r.personId
+        WHERE LOWER(r.role) IN ('actor', 'actress')
+        AND LOWER(p.name) LIKE LOWER(CONCAT('%', :actorName, '%'))
         """)
-    List<Movie> findMoviesByPersonNameContainingIgnoreCase(@Param("personName") String personName);
+    List<Movie> findMoviesByActorNameContainingIgnoreCase(@Param("actorName") String actorName);
+
+    @Query("""
+        SELECT DISTINCT m
+        FROM Movie m
+        JOIN Role r ON r.movieId = m.movieId
+        JOIN Person p ON p.personId = r.personId
+        WHERE LOWER(r.role) = 'director'
+        AND LOWER(p.name) LIKE LOWER(CONCAT('%', :directorName, '%'))
+        """)
+    List<Movie> findMoviesByDirectorNameContainingIgnoreCase(@Param("directorName") String directorName);
 
     @Query("""
         SELECT m

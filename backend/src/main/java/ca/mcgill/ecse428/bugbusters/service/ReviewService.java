@@ -1,8 +1,9 @@
 package ca.mcgill.ecse428.bugbusters.service;
 
+import java.util.List;
+
 import ca.mcgill.ecse428.bugbusters.model.Review;
 import ca.mcgill.ecse428.bugbusters.repository.ReviewRepository;
-import java.util.List;
 
 public class ReviewService {
     private final ReviewRepository repository;
@@ -65,5 +66,44 @@ public class ReviewService {
         if (review.getRating() < 1 || review.getRating() > 5) {
             throw new IllegalArgumentException("Rating must be between 1 and 5");
         }
+    }
+
+    public void deleteReview(String userId, String movieId) {
+
+        Review reviewToDelete = repository.findByUserAndMovie(userId, movieId);
+        if (reviewToDelete == null) {
+            throw new IllegalArgumentException("Review does not exist");
+        }
+        repository.deleteByUserAndMovie(userId, movieId);
+
+    }
+
+    public Double getAverageRatingForMovie(String movieId) {
+        List<Review> reviews = repository.findByMovie(movieId);
+
+        // no reviews
+        if (reviews.isEmpty()) {
+            return null;
+        }
+
+        double total = 0;
+        for (Review review : reviews) {
+            total += review.getRating();
+        }
+        return total / reviews.size();
+    }
+
+    public Integer getTotalRatingCountForMovie(String movieId) {
+        List<Review> reviews = repository.findByMovie(movieId);
+        return reviews.size();
+    }
+
+    public void getAllRatingsForMovie(String movieId) {
+
+        List<Review> reviews = repository.findByMovie(movieId);
+        for (Review review : reviews) {
+            System.out.println("User: " + review.getUserId() + ", Rating: " + review.getRating() + ", Review: " + review.getReviewText());
+        }
+        
     }
 }
