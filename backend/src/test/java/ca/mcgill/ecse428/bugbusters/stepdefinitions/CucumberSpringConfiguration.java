@@ -9,6 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 // @Autowired services, repositories and MockMvc (to call the REST endpoints). Uses the in-memory
 // H2 database from src/test/resources/application.properties, never Supabase.
 // There must be exactly one @CucumberContextConfiguration class in this package.
+@AutoConfigureMockMvc 
 @CucumberContextConfiguration
 @SpringBootTest(classes = BugBustersApplication.class, properties = {
     "spring.config.import=",

@@ -12,7 +12,7 @@ import static io.cucumber.junit.platform.engine.Constants.PLUGIN_PROPERTY_NAME;
 @Suite
 @IncludeEngines("cucumber")
 @SelectClasspathResource(
-    "gherkinFeatures/ID_021_Get_Personalized_Movie_Recommendations.feature"
+    "gherkinFeatures"
 )
 @ConfigurationParameter(
     key = GLUE_PROPERTY_NAME,
@@ -22,5 +22,5 @@ import static io.cucumber.junit.platform.engine.Constants.PLUGIN_PROPERTY_NAME;
     key = PLUGIN_PROPERTY_NAME,
     value = "pretty,html:build/reports/cucumber/recommendations.html"
 )
-public class RunRecommendationCucumberTest {
+public class RunCucumberTest {
 }
