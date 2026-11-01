@@ -1,4 +1,4 @@
-Feature: Create User
+Feature: ID_001 Create User
 
 As a new visitor of the app
 I want to create a user account with my email and a password

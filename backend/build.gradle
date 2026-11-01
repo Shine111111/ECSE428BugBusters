@@ -10,6 +10,13 @@ plugins {
     id 'io.spring.dependency-management' version '1.1.6'
 }
 
+// Spring Boot 3.3 supports Java 17-23; pin to 21 (LTS) whatever JDK runs Gradle
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
 repositories {
     mavenCentral()
 }
@@ -18,7 +25,11 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     runtimeOnly 'org.postgresql:postgresql'
-    
+
+    // Spring test support (@DataJpaTest) with an in-memory database instead of Supabase
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'com.h2database:h2'
+
     // JUnit 5
     testImplementation platform('org.junit:junit-bom:5.10.2')
     testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -30,12 +41,32 @@ dependencies {
     testImplementation platform('io.cucumber:cucumber-bom:7.18.0')
     testImplementation 'io.cucumber:cucumber-java'
     testImplementation 'io.cucumber:cucumber-junit-platform-engine'
+    // Lets step definitions use Spring beans (services, repositories)
     testImplementation 'io.cucumber:cucumber-spring'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
+}
+
+// Runs only the Gherkin acceptance tests (no unit tests), e.g. for the acceptance-test video
+tasks.register('acceptanceTest', Test) {
+    description = 'Runs the Cucumber acceptance tests in src/test/resources/gherkinFeatures'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeEngines 'cucumber'
+    }
+}
+
+tasks.withType(Test).configureEach {
+    // Pass Cucumber options from the command line to the tests, e.g.
+    // -Dcucumber.features=classpath:gherkinFeatures/ID_001_Create_User.feature runs one feature only
+    // (read through providers so a changed -D option is not lost to the configuration cache)
+    providers.systemPropertiesPrefixedBy('cucumber.').get().each { key, value ->
+        systemProperty key, value
+    }
     testLogging {
         events "passed", "skipped", "failed"
     }
