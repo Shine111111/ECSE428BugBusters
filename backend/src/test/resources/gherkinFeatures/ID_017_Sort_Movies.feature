@@ -40,7 +40,7 @@ Feature: Sort Movies ID017
     Given the movie list is currently sorted by title is ascending order
     When the user sorts the movies by rating in descending order
     Then the sorted results should be:
-      | title           |
+      | title               |
       | The Dark Knight     |
       | Pulp Fiction        |
       | Inception           |
