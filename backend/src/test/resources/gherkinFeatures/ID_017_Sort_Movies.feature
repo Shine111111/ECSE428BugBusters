@@ -1,4 +1,4 @@
-Feature: Sort Movies
+Feature: Sort Movies ID017
   As a movie recommendation app user
   I would like to sort movies by title, rating, views, or release year in both directions
   So that I can locate specific content relevant to my interests
@@ -52,3 +52,10 @@ Feature: Sort Movies
   Scenario: Sort by an unsupported criterion (Error Flow)
     When the user sorts the movies by "duration" in "ascending" order
     Then an error message "Invalid sort criterion" should be issued
+
+
+
+  Scenario: Sort when search results are empty (Error Flow)
+    Given there are no movies in the current search results
+    When the user attempts to sort the results by "views" in "descending" order
+    Then a warning message "No results available to sort" should be displayed
