@@ -52,3 +52,15 @@ Feature: Add movie to Watch Later playlist ID_023
       | Pulp Fiction       |
       | Interstellar       |
       | The Dark Knight    |
+
+  Scenario Outline: Attempt to add a movie that does not exist (Error Flow)
+
+    Given the movie with title "<title>" does not exist in the catalog
+    When I add the movie with title "<title>" to my Watch Later playlist
+    Then I should see the message "Movie not found"
+    And my Watch Later playlist should remain unchanged
+
+    Examples:
+      | title              |
+      | Batwomen5          |
+      | Flight Wars        |
