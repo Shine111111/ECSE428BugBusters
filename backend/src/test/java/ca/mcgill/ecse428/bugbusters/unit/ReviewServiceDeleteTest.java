@@ -22,21 +22,21 @@ class ReviewServiceDeleteTest {
     }
 
     @Test
-    void testDeleteReview() {
+    void ID_008_testDeleteReview() {
         service.storeReview(new Review("TestUser", "Cars2", 4, "Great movie"));
         service.deleteReview("TestUser", "Cars2");
         assertNull(repository.findByUserAndMovie("TestUser", "Cars2"));
     }
 
     @Test
-    void testDeleteNonExistentReview() {
+    void ID_008_testDeleteNonExistentReview() {
         IllegalArgumentException error = assertThrows(IllegalArgumentException.class,
                 () -> service.deleteReview("User", "Movie"));
         assertEquals("Review does not exist", error.getMessage());
     }
 
     @Test
-    void deleteDoesNotAffectOtherReviews() {
+    void ID_008_deleteDoesNotAffectOtherReviews() {
         service.storeReview(new Review("Hamza", "Cars2", 4, null));
         service.storeReview(new Review("Robert", "Cars2", 2, null));
         service.storeReview(new Review("Hamza", "Up", 5, null));
@@ -46,7 +46,7 @@ class ReviewServiceDeleteTest {
     }
 
     @Test
-    void deletedReviewCanBeCreatedAgain() {
+    void ID_008_deletedReviewCanBeCreatedAgain() {
         service.storeReview(new Review("Hamza", "Cars2", 4, null));
         service.deleteReview("Hamza", "Cars2");
         service.storeReview(new Review("Hamza", "Cars2", 1, null));

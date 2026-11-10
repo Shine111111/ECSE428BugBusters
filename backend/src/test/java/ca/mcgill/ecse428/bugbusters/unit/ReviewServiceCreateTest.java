@@ -26,7 +26,7 @@ class ReviewServiceCreateTest {
 
     @ParameterizedTest
     @ValueSource(ints = {1, 2, 3, 4, 5})
-    void createValidRatingWithoutReviewText(int stars) {
+    void ID_008_createValidRatingWithoutReviewText(int stars) {
         service.storeReview(new Review("Hamza", "Cars2", stars, null));
         Review stored = repository.findByUserAndMovie("Hamza", "Cars2");
         assertNotNull(stored);
@@ -35,7 +35,7 @@ class ReviewServiceCreateTest {
     }
 
     @Test
-    void createValidRatingWithReviewText() {
+    void ID_008_createValidRatingWithReviewText() {
         service.storeReview(new Review("Hamza", "Cars2", 4, "Great movie"));
         Review stored = repository.findByUserAndMovie("Hamza", "Cars2");
         assertNotNull(stored);
@@ -45,7 +45,7 @@ class ReviewServiceCreateTest {
 
     @ParameterizedTest
     @ValueSource(ints = {0, -1, Integer.MIN_VALUE})
-    void rejectRatingBelowOne(int stars) {
+    void ID_008_rejectRatingBelowOne(int stars) {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> service.storeReview(new Review("Hamza", "Cars2", stars, null)));
         assertEquals("Rating must be between 1 and 5", e.getMessage());
@@ -54,7 +54,7 @@ class ReviewServiceCreateTest {
 
     @ParameterizedTest
     @ValueSource(ints = {6, 10, Integer.MAX_VALUE})
-    void rejectRatingAboveFive(int stars) {
+    void ID_008_rejectRatingAboveFive(int stars) {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> service.storeReview(new Review("Hamza", "Cars2", stars, null)));
         assertEquals("Rating must be between 1 and 5", e.getMessage());
@@ -63,7 +63,7 @@ class ReviewServiceCreateTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"", " ", "\t"})
-    void rejectBlankUserId(String userId) {
+    void ID_008_rejectBlankUserId(String userId) {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> service.storeReview(new Review(userId, "Cars2", 4, null)));
         assertEquals("User ID cannot be blank", e.getMessage());
@@ -71,7 +71,7 @@ class ReviewServiceCreateTest {
     }
 
     @Test
-    void rejectNullUserId() {
+    void ID_008_rejectNullUserId() {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> service.storeReview(new Review(null, "Cars2", 4, null)));
         assertEquals("User ID cannot be blank", e.getMessage());
@@ -80,7 +80,7 @@ class ReviewServiceCreateTest {
 
     @ParameterizedTest
     @ValueSource(strings = {"", " ", "\t"})
-    void rejectBlankMovieId(String movieId) {
+    void ID_008_rejectBlankMovieId(String movieId) {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> service.storeReview(new Review("Hamza", movieId, 4, null)));
         assertEquals("Movie ID cannot be blank", e.getMessage());
@@ -88,7 +88,7 @@ class ReviewServiceCreateTest {
     }
 
     @Test
-    void rejectNullMovieId() {
+    void ID_008_rejectNullMovieId() {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> service.storeReview(new Review("Hamza", null, 4, null)));
         assertEquals("Movie ID cannot be blank", e.getMessage());
@@ -96,14 +96,14 @@ class ReviewServiceCreateTest {
     }
 
     @Test
-    void rejectNullReview() {
+    void ID_008_rejectNullReview() {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> service.storeReview(null));
         assertEquals("Review cannot be null", e.getMessage());
     }
 
     @Test
-    void rejectDuplicateRatingForSameUserAndMovie() {
+    void ID_008_rejectDuplicateRatingForSameUserAndMovie() {
         service.storeReview(new Review("Hamza", "Cars2", 4, "Great movie"));
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> service.storeReview(new Review("Hamza", "Cars2", 2, "Too slow")));
@@ -116,7 +116,7 @@ class ReviewServiceCreateTest {
     }
 
     @Test
-    void allowDifferentUsersToRateSameMovie() {
+    void ID_008_allowDifferentUsersToRateSameMovie() {
         service.storeReview(new Review("Hamza", "Cars2", 4, null));
         service.storeReview(new Review("Robert", "Cars2", 2, null));
         assertEquals(4, repository.findByUserAndMovie("Hamza", "Cars2").getRating());
