@@ -19,7 +19,7 @@ Feature: ID_023 Add Movie to Watch Later Playlist
     And my Watch Later playlist does not contain the movie with title "<title>"
     When I add the movie with title "<title>" to my Watch Later playlist
     Then the movie with title "<title>" should appear in my Watch Later playlist
-    And I should see the message "Added to Watch Later"
+    And I should see the message "This movie was added to your Watch Later playlist."
 
     Examples:
       | title              |
@@ -32,7 +32,7 @@ Feature: ID_023 Add Movie to Watch Later Playlist
     Given my Watch Later playlist is empty
     When I add the movie with title "<title>" to my Watch Later playlist
     Then the movie with title "<title>" should appear in my Watch Later playlist
-    And I should see the message "You have added your first movie to your Watch Later Playlist"
+    And I should see the message "You have added your first movie to your Watch Later playlist."
 
     Examples:
       | title              |
@@ -44,7 +44,7 @@ Feature: ID_023 Add Movie to Watch Later Playlist
 
     Given my Watch Later playlist contains the movie with title "<title>"
     When I add the movie with title "<title>" to my Watch Later playlist
-    Then I should see the error message "Movie already added"
+    Then I should see the error message "This movie has already been added to the playlist."
     And my Watch Later playlist should remain unchanged
 
     Examples:

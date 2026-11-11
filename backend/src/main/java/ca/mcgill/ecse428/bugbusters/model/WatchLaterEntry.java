@@ -14,7 +14,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "watch_later",
         uniqueConstraints = @UniqueConstraint(name = "uk_watch_later_user_movie", columnNames = {"user_id", "movie_id"}))
-public class WatchLater {
+public class WatchLaterEntry {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -30,14 +30,14 @@ public class WatchLater {
     @Column(name = "added_at", nullable = false)
     private Instant addedAt;
 
-    protected WatchLater() {
+    protected WatchLaterEntry() {
     }
 
-    public WatchLater(String userId, String movieId) {
+    public WatchLaterEntry(String userId, String movieId) {
         this(userId, movieId, Instant.now());
     }
 
-    public WatchLater(String userId, String movieId, Instant addedAt) {
+    public WatchLaterEntry(String userId, String movieId, Instant addedAt) {
         this.userId = userId;
         this.movieId = movieId;
         this.addedAt = addedAt;

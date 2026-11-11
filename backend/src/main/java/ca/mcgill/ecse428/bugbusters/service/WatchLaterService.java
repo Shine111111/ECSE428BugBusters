@@ -1,8 +1,10 @@
 package ca.mcgill.ecse428.bugbusters.service;
 
 import ca.mcgill.ecse428.bugbusters.dto.WatchLaterResponse;
+import ca.mcgill.ecse428.bugbusters.model.WatchLaterEntry;
 import ca.mcgill.ecse428.bugbusters.repository.MovieRepository;
 import ca.mcgill.ecse428.bugbusters.repository.UserRepository;
+import ca.mcgill.ecse428.bugbusters.repository.WatchLaterRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
