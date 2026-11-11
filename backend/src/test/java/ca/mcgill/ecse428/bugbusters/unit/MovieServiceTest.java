@@ -34,6 +34,7 @@ public class MovieServiceTest {
     private Movie interstellar;
     private Movie darkKnight;
     private Movie pulpFiction;
+    private Movie djangoUnchained;
 
     @BeforeEach
     void setUp() {
@@ -41,6 +42,7 @@ public class MovieServiceTest {
         interstellar = new Movie("tt0816692", "Interstellar", "Sci-Fi", 2014, 169, new BigDecimal("8.7"), 1900000L);
         darkKnight = new Movie("tt0468569", "The Dark Knight", "Action", 2008, 152, new BigDecimal("9.0"), 2700000L);
         pulpFiction = new Movie("tt0110912", "Pulp Fiction", "Crime", 1994, 154, new BigDecimal("8.9"), 2100000L);
+        djangoUnchained = new Movie("tt1853728", "Django Unchained", "Western", 2012, 165, new BigDecimal("8.4"), 1700000L);
     }
 
     // =========================================================================
@@ -210,6 +212,67 @@ public class MovieServiceTest {
                     () -> movieService.findMovieById("  ")
             );
             assertEquals("Movie ID cannot be empty", exception.getMessage());
+        }
+    }
+
+    @Nested
+    @DisplayName("Sorting Service Tests")
+    class SortingServiceTests {
+
+        @Test
+        @DisplayName("Sort movies by title in ascending order")
+        void testSortMoviesByTitleAscending() {
+            List<Movie> input = List.of(inception, interstellar, darkKnight, pulpFiction, djangoUnchained);
+
+            List<Movie> results = movieService.sortMovies(input, "title", "ascending");
+
+            assertEquals(
+                    List.of("Django Unchained", "Inception", "Interstellar", "Pulp Fiction", "The Dark Knight"),
+                    results.stream().map(Movie::getTitle).toList()
+            );
+        }
+
+        @Test
+        @DisplayName("Sort movies by rating in descending order")
+        void testSortMoviesByRatingDescending() {
+            List<Movie> input = List.of(inception, interstellar, darkKnight, pulpFiction, djangoUnchained);
+
+            List<Movie> results = movieService.sortMovies(input, "rating", "descending");
+
+            assertEquals(
+                    List.of("The Dark Knight", "Pulp Fiction", "Inception", "Interstellar", "Django Unchained"),
+                    results.stream().map(Movie::getTitle).toList()
+            );
+        }
+
+        @Test
+        @DisplayName("Unsupported criterion throws IllegalArgumentException")
+        void testSortMovies_InvalidCriterionThrows() {
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> movieService.sortMovies(List.of(inception, interstellar), "duration", "ascending")
+            );
+            assertEquals("Invalid sort criterion", exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Unsupported direction throws IllegalArgumentException")
+        void testSortMovies_InvalidDirectionThrows() {
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> movieService.sortMovies(List.of(inception, interstellar), "title", "sideways")
+            );
+            assertEquals("Invalid sort direction", exception.getMessage());
+        }
+
+        @Test
+        @DisplayName("Empty list throws IllegalArgumentException")
+        void testSortMovies_EmptyListThrows() {
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> movieService.sortMovies(List.of(), "views", "descending")
+            );
+            assertEquals("No results available to sort", exception.getMessage());
         }
     }
 }
