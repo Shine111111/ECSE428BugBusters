@@ -2,10 +2,8 @@ package ca.mcgill.ecse428.bugbusters.service;
 
 import ca.mcgill.ecse428.bugbusters.model.Movie;
 import ca.mcgill.ecse428.bugbusters.repository.MovieRepository;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -63,59 +61,66 @@ public class MovieService {
                 .orElseThrow(() -> new IllegalArgumentException("Movie not found: " + movieId));
     }
 
+    /**
+     * Sorts a subset of movies (e.g. current search results) using the repository.
+     */
     public List<Movie> sortMovies(List<Movie> movies, String criterion, String direction) {
         if (movies == null || movies.isEmpty()) {
             throw new IllegalArgumentException("No results available to sort");
         }
 
-        String normalizedCriterion = criterion == null ? "" : criterion.trim().toLowerCase();
-        String normalizedDirection = direction == null ? "" : direction.trim().toLowerCase();
-
-        if (!isValidSortCriterion(normalizedCriterion)) {
-            throw new IllegalArgumentException("Invalid sort criterion");
-        }
-
-        if (!"ascending".equals(normalizedDirection)
-                && !"descending".equals(normalizedDirection)
-                && !"asc".equals(normalizedDirection)
-                && !"desc".equals(normalizedDirection)) {
-            throw new IllegalArgumentException("Invalid sort direction");
-        }
-
-        Comparator<Movie> comparator = switch (normalizedCriterion) {
-            case "title", "name" -> Comparator.comparing(
-                    Movie::getTitle,
-                    Comparator.nullsFirst(String.CASE_INSENSITIVE_ORDER)
-            );
-            case "rating" -> Comparator.comparing(
-                    Movie::getRatings,
-                    Comparator.nullsLast(BigDecimal::compareTo)
-            );
-            case "views" -> Comparator.comparing(
-                    movie -> movie.getNumVotes() == null ? 0L : movie.getNumVotes(),
-                    Comparator.nullsLast(Long::compareTo)
-            );
-            case "release_year", "year", "start_year" -> Comparator.comparing(
-                    Movie::getStartYear,
-                    Comparator.nullsLast(Integer::compareTo)
-            );
-            default -> throw new IllegalArgumentException("Invalid sort criterion");
-        };
-
-        boolean descending = "descending".equals(normalizedDirection) || "desc".equals(normalizedDirection);
-        List<Movie> sorted = new ArrayList<>(movies);
-        sorted.sort(
-                descending
-                        ? comparator.reversed().thenComparing(Movie::getTitle, String.CASE_INSENSITIVE_ORDER)
-                        : comparator.thenComparing(Movie::getTitle, String.CASE_INSENSITIVE_ORDER)
-        );
-        return sorted;
+        Sort sort = buildSort(criterion, direction);
+        List<String> movieIds = movies.stream().map(Movie::getMovieId).toList();
+        return movieRepository.findByMovieIdIn(movieIds, sort);
     }
 
-    private boolean isValidSortCriterion(String criterion) {
-        return switch (criterion) {
-            case "title", "name", "rating", "views", "release_year", "year", "start_year" -> true;
-            default -> false;
+    /**
+     * Sorts the whole movie catalog using the repository.
+     */
+    public List<Movie> sortAllMovies(String criterion, String direction) {
+        String property = toSortProperty(criterion);
+        boolean descending = toSortDirection(direction) == Sort.Direction.DESC;
+
+        return switch (property) {
+            case "ratings" -> descending
+                    ? movieRepository.findAllByOrderByRatingsDesc()
+                    : movieRepository.findAllByOrderByRatingsAsc();
+            case "startYear" -> descending
+                    ? movieRepository.findAllByOrderByStartYearDesc()
+                    : movieRepository.findAllByOrderByStartYearAsc();
+            default -> movieRepository.findAll(buildSort(criterion, direction));
+        };
+    }
+
+    private Sort buildSort(String criterion, String direction) {
+        String property = toSortProperty(criterion);
+        Sort.Direction sortDirection = toSortDirection(direction);
+
+        Sort.Order primary = new Sort.Order(sortDirection, property);
+        if ("title".equals(property)) {
+            primary = primary.ignoreCase();
+        }
+        // Tie-break by title so ordering is deterministic
+        return Sort.by(primary, Sort.Order.asc("title").ignoreCase());
+    }
+
+    private String toSortProperty(String criterion) {
+        String normalized = criterion == null ? "" : criterion.trim().toLowerCase();
+        return switch (normalized) {
+            case "title", "name" -> "title";
+            case "rating" -> "ratings";
+            case "views" -> "numVotes";
+            case "release_year", "year", "start_year" -> "startYear";
+            default -> throw new IllegalArgumentException("Invalid sort criterion");
+        };
+    }
+
+    private Sort.Direction toSortDirection(String direction) {
+        String normalized = direction == null ? "" : direction.trim().toLowerCase();
+        return switch (normalized) {
+            case "ascending", "asc" -> Sort.Direction.ASC;
+            case "descending", "desc" -> Sort.Direction.DESC;
+            default -> throw new IllegalArgumentException("Invalid sort direction");
         };
     }
 }

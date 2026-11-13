@@ -8,9 +8,11 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Sort;
 
 import java.math.BigDecimal;
 import java.util.Collections;
@@ -18,6 +20,8 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
@@ -219,30 +223,91 @@ public class MovieServiceTest {
     @DisplayName("Sorting Service Tests")
     class SortingServiceTests {
 
-        @Test
-        @DisplayName("Sort movies by title in ascending order")
-        void testSortMoviesByTitleAscending() {
-            List<Movie> input = List.of(inception, interstellar, darkKnight, pulpFiction, djangoUnchained);
+        private List<Movie> allMovies() {
+            return List.of(inception, interstellar, darkKnight, pulpFiction, djangoUnchained);
+        }
 
-            List<Movie> results = movieService.sortMovies(input, "title", "ascending");
+        @Test
+        @DisplayName("Sort results by title ascending delegates to repository with title ASC sort")
+        void testSortMoviesByTitleAscending() {
+            List<Movie> expected = List.of(djangoUnchained, inception, interstellar, pulpFiction, darkKnight);
+            ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
+            when(movieRepository.findByMovieIdIn(anyList(), sortCaptor.capture())).thenReturn(expected);
+
+            List<Movie> results = movieService.sortMovies(allMovies(), "title", "ascending");
 
             assertEquals(
                     List.of("Django Unchained", "Inception", "Interstellar", "Pulp Fiction", "The Dark Knight"),
                     results.stream().map(Movie::getTitle).toList()
             );
+            Sort.Order order = sortCaptor.getValue().getOrderFor("title");
+            assertNotNull(order);
+            assertEquals(Sort.Direction.ASC, order.getDirection());
+            assertTrue(order.isIgnoreCase());
         }
 
         @Test
-        @DisplayName("Sort movies by rating in descending order")
+        @DisplayName("Sort results by rating descending delegates to repository with ratings DESC sort")
         void testSortMoviesByRatingDescending() {
-            List<Movie> input = List.of(inception, interstellar, darkKnight, pulpFiction, djangoUnchained);
+            List<Movie> expected = List.of(darkKnight, pulpFiction, inception, interstellar, djangoUnchained);
+            ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
+            when(movieRepository.findByMovieIdIn(anyList(), sortCaptor.capture())).thenReturn(expected);
 
-            List<Movie> results = movieService.sortMovies(input, "rating", "descending");
+            List<Movie> results = movieService.sortMovies(allMovies(), "rating", "descending");
 
             assertEquals(
                     List.of("The Dark Knight", "Pulp Fiction", "Inception", "Interstellar", "Django Unchained"),
                     results.stream().map(Movie::getTitle).toList()
             );
+            assertEquals(Sort.Direction.DESC, sortCaptor.getValue().getOrderFor("ratings").getDirection());
+        }
+
+        @Test
+        @DisplayName("Sort results passes the ids of the given movies to the repository")
+        void testSortMovies_PassesMovieIds() {
+            when(movieRepository.findByMovieIdIn(anyList(), any(Sort.class))).thenReturn(List.of(inception, darkKnight));
+
+            movieService.sortMovies(List.of(inception, darkKnight), "views", "asc");
+
+            verify(movieRepository).findByMovieIdIn(eq(List.of("tt1375666", "tt0468569")), any(Sort.class));
+        }
+
+        @Test
+        @DisplayName("Direction aliases and casing are normalized")
+        void testSortMovies_DirectionAliasNormalized() {
+            ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
+            when(movieRepository.findByMovieIdIn(anyList(), sortCaptor.capture())).thenReturn(allMovies());
+
+            movieService.sortMovies(allMovies(), "  Release_Year ", " DESC ");
+
+            assertEquals(Sort.Direction.DESC, sortCaptor.getValue().getOrderFor("startYear").getDirection());
+        }
+
+        @Test
+        @DisplayName("Sort whole catalog by release year ascending uses derived repository query")
+        void testSortAllMoviesByYearAscending() {
+            when(movieRepository.findAllByOrderByStartYearAsc())
+                    .thenReturn(List.of(pulpFiction, darkKnight, inception, djangoUnchained, interstellar));
+
+            List<Movie> results = movieService.sortAllMovies("release_year", "ascending");
+
+            assertEquals(
+                    List.of("Pulp Fiction", "The Dark Knight", "Inception", "Django Unchained", "Interstellar"),
+                    results.stream().map(Movie::getTitle).toList()
+            );
+            verify(movieRepository, times(1)).findAllByOrderByStartYearAsc();
+        }
+
+        @Test
+        @DisplayName("Sort whole catalog by rating descending uses derived repository query")
+        void testSortAllMoviesByRatingDescending() {
+            when(movieRepository.findAllByOrderByRatingsDesc())
+                    .thenReturn(List.of(darkKnight, pulpFiction, inception, interstellar, djangoUnchained));
+
+            List<Movie> results = movieService.sortAllMovies("rating", "descending");
+
+            assertEquals(5, results.size());
+            verify(movieRepository, times(1)).findAllByOrderByRatingsDesc();
         }
 
         @Test
@@ -253,6 +318,7 @@ public class MovieServiceTest {
                     () -> movieService.sortMovies(List.of(inception, interstellar), "duration", "ascending")
             );
             assertEquals("Invalid sort criterion", exception.getMessage());
+            verifyNoInteractions(movieRepository);
         }
 
         @Test
@@ -263,6 +329,7 @@ public class MovieServiceTest {
                     () -> movieService.sortMovies(List.of(inception, interstellar), "title", "sideways")
             );
             assertEquals("Invalid sort direction", exception.getMessage());
+            verifyNoInteractions(movieRepository);
         }
 
         @Test
@@ -273,6 +340,40 @@ public class MovieServiceTest {
                     () -> movieService.sortMovies(List.of(), "views", "descending")
             );
             assertEquals("No results available to sort", exception.getMessage());
+            verifyNoInteractions(movieRepository);
+        }
+
+        @Test
+        @DisplayName("Null list throws IllegalArgumentException")
+        void testSortMovies_NullListThrows() {
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> movieService.sortMovies(null, "views", "descending")
+            );
+            assertEquals("No results available to sort", exception.getMessage());
+            verifyNoInteractions(movieRepository);
+        }
+
+        @Test
+        @DisplayName("Sort whole catalog with invalid criterion throws without hitting repository")
+        void testSortAllMovies_InvalidCriterionThrows() {
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> movieService.sortAllMovies("duration", "ascending")
+            );
+            assertEquals("Invalid sort criterion", exception.getMessage());
+            verifyNoInteractions(movieRepository);
+        }
+
+        @Test
+        @DisplayName("Sort whole catalog with invalid direction throws without hitting repository")
+        void testSortAllMovies_InvalidDirectionThrows() {
+            IllegalArgumentException exception = assertThrows(
+                    IllegalArgumentException.class,
+                    () -> movieService.sortAllMovies("rating", "sideways")
+            );
+            assertEquals("Invalid sort direction", exception.getMessage());
+            verifyNoInteractions(movieRepository);
         }
     }
 }
