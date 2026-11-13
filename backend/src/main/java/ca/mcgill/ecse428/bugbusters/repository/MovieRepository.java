@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.data.domain.Sort;
 
 public interface MovieRepository extends JpaRepository<Movie, String> {
 
@@ -15,6 +16,15 @@ public interface MovieRepository extends JpaRepository<Movie, String> {
     List<Movie> findByStartYear(Integer startYear);
 
     List<Movie> findByRuntime(Integer runtime);
+
+    // ID017 (TID001): Exact entity property names (startYear & ratings)
+    List<Movie> findAllByOrderByStartYearAsc();
+    List<Movie> findAllByOrderByStartYearDesc();
+    List<Movie> findAllByOrderByRatingsAsc();
+    List<Movie> findAllByOrderByRatingsDesc();
+
+    // Sort a filtered subset of search results
+    List<Movie> findByMovieIdIn(List<String> movieIds, Sort sort);
 
     @Query("""
         SELECT DISTINCT m
