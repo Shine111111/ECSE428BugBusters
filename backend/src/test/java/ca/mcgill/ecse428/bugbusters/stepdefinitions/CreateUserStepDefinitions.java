@@ -37,6 +37,9 @@ public class CreateUserStepDefinitions {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private MessageStepDefinitions messages;
+
     private MockHttpServletResponse response;
     private JsonNode responseBody;
     private long userCountBeforeSubmit;
@@ -58,6 +61,8 @@ public class CreateUserStepDefinitions {
                 .andReturn()
                 .getResponse();
         responseBody = objectMapper.readTree(response.getContentAsString());
+        boolean rejected = HttpStatus.valueOf(response.getStatus()).is4xxClientError();
+        messages.shownError(rejected ? responseBody.get("error").asText() : null);
     }
 
     // ---- TID018 - Normal flow ----
@@ -86,13 +91,6 @@ public class CreateUserStepDefinitions {
             userService.createUser("Existing User", email, "Existing123#");
         }
         assertTrue(userRepository.existsByEmailIgnoreCase(email));
-    }
-
-    @Then("^an? \"([^\"]*)\" message is shown$")
-    public void aMessageIsShown(String expectedMessage) {
-        assertTrue(HttpStatus.valueOf(response.getStatus()).is4xxClientError(),
-                "Expected an error response but got " + response.getStatus());
-        assertEquals(expectedMessage, responseBody.get("error").asText());
     }
 
     @Then("no new account is created")
