@@ -36,15 +36,16 @@ public class Movie {
     @Column(name = "num_votes")
     private Long numVotes;
 
-    // Recommendation-only metadata is not present in the catalog table.
+    // Cast and director metadata is not present in the catalog table.
     @Transient
     private Set<String> actors = Set.of();
     @Transient
     private String director;
-    @Transient
-    private int commentCount;
-    @Transient
-    private int viewCount;
+    // Null means the popularity signal has not been collected yet.
+    @Column(name = "comment_count")
+    private Integer commentCount;
+    @Column(name = "view_count")
+    private Integer viewCount;
 
     public Movie(String id, String title, Set<String> genres, Set<String> actors,
                  String director, double averageRating, int ratingCount, int commentCount, int viewCount) {
@@ -68,8 +69,15 @@ public class Movie {
     public int getRatingCount() {
         return numVotes == null ? 0 : (int) Math.min(Integer.MAX_VALUE, numVotes);
     }
-    public int getCommentCount() { return commentCount; }
-    public int getViewCount() { return viewCount; }
+    public int getCommentCount() { return commentCount == null ? 0 : commentCount; }
+    public int getViewCount() { return viewCount == null ? 0 : viewCount; }
+    public void setCommentCount(Integer commentCount) { this.commentCount = commentCount; }
+    public void setViewCount(Integer viewCount) { this.viewCount = viewCount; }
+
+    /** Checks presence before trending uses the zero-default recommendation getters. */
+    public boolean hasTrendingData() {
+        return ratings != null && numVotes != null && commentCount != null && viewCount != null;
+    }
 
     public Movie() {
     }
