@@ -49,6 +49,31 @@ tasks.named('test') {
     useJUnitPlatform()
 }
 
+// Restrict the engine as well as class names: Cucumber discovers feature resources
+// independently of Gradle's --tests class filter.
+tasks.register('unitTest', Test) {
+    description = 'Runs JUnit tests without Cucumber acceptance scenarios'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform {
+        includeEngines 'junit-jupiter'
+    }
+}
+
+tasks.register('trendingTest', Test) {
+    description = 'Runs SID0027 calculation, service, repository, and API tests'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    filter {
+        includeTestsMatching 'ca.mcgill.ecse428.bugbusters.unit.Trending*'
+    }
+    useJUnitPlatform {
+        includeEngines 'junit-jupiter'
+    }
+}
+
 // Runs only the Gherkin acceptance tests (no unit tests), e.g. for the acceptance-test video
 tasks.register('acceptanceTest', Test) {
     description = 'Runs the Cucumber acceptance tests in src/test/resources/gherkinFeatures'

@@ -9,6 +9,8 @@ import org.springframework.data.domain.Sort;
 
 public interface MovieRepository extends JpaRepository<Movie, String> {
 
+    List<Movie> findByNumVotesGreaterThanEqual(long minimumVotes);
+
     List<Movie> findByTitleContainingIgnoreCase(String title);
 
     List<Movie> findByGenreContainingIgnoreCase(String genre);
