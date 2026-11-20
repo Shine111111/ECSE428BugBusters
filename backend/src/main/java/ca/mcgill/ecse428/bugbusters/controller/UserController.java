@@ -2,6 +2,7 @@ package ca.mcgill.ecse428.bugbusters.controller;
 
 import ca.mcgill.ecse428.bugbusters.dto.CreateUserRequest;
 import ca.mcgill.ecse428.bugbusters.dto.ErrorResponse;
+import ca.mcgill.ecse428.bugbusters.dto.LoginRequest;
 import ca.mcgill.ecse428.bugbusters.dto.UserResponse;
 import ca.mcgill.ecse428.bugbusters.model.User;
 import ca.mcgill.ecse428.bugbusters.service.UserService;
@@ -31,11 +32,23 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(UserResponse.from(user));
     }
 
+    // TID020 - login endpoint: 200 with the user, 401 for a wrong email or password, 400 for invalid input
+    @PostMapping("/login")
+    public ResponseEntity<UserResponse> login(@RequestBody LoginRequest request) {
+        User user = userService.login(request.email(), request.password());
+        return ResponseEntity.ok(UserResponse.from(user));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleInvalidInput(IllegalArgumentException e) {
-        HttpStatus status = UserService.EMAIL_ALREADY_REGISTERED.equals(e.getMessage())
-                ? HttpStatus.CONFLICT
-                : HttpStatus.BAD_REQUEST;
+        HttpStatus status;
+        if (UserService.EMAIL_ALREADY_REGISTERED.equals(e.getMessage())) {
+            status = HttpStatus.CONFLICT;
+        } else if (UserService.INVALID_CREDENTIALS.equals(e.getMessage())) {
+            status = HttpStatus.UNAUTHORIZED;
+        } else {
+            status = HttpStatus.BAD_REQUEST;
+        }
         return ResponseEntity.status(status).body(new ErrorResponse(e.getMessage()));
     }
 
