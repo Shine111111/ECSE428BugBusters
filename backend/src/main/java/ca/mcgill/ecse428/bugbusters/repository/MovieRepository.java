@@ -19,11 +19,19 @@ public interface MovieRepository extends JpaRepository<Movie, String> {
 
     List<Movie> findByRuntime(Integer runtime);
 
-    // ID017 (TID001): Exact entity property names (startYear & ratings)
-    List<Movie> findAllByOrderByStartYearAsc();
-    List<Movie> findAllByOrderByStartYearDesc();
-    List<Movie> findAllByOrderByRatingsAsc();
-    List<Movie> findAllByOrderByRatingsDesc();
+    // // ID017 (TID001): Exact entity property names (startYear & ratings) no need after week2 becasue all the methods have been updated with the ones below
+    // List<Movie> findAllByOrderByStartYearAsc();
+    // List<Movie> findAllByOrderByStartYearDesc();
+    // List<Movie> findAllByOrderByRatingsAsc();
+    // List<Movie> findAllByOrderByRatingsDesc();
+
+    // ID017 (TID005): Release year, rating, and views with deterministic title tie-breaker
+    List<Movie> findAllByOrderByStartYearAscTitleAsc();
+    List<Movie> findAllByOrderByStartYearDescTitleAsc();
+    List<Movie> findAllByOrderByRatingsAscTitleAsc();
+    List<Movie> findAllByOrderByRatingsDescTitleAsc();
+    List<Movie> findAllByOrderByNumVotesAscTitleAsc();
+    List<Movie> findAllByOrderByNumVotesDescTitleAsc();
 
     // Sort a filtered subset of search results
     List<Movie> findByMovieIdIn(List<String> movieIds, Sort sort);

@@ -83,11 +83,14 @@ public class MovieService {
 
         return switch (property) {
             case "ratings" -> descending
-                    ? movieRepository.findAllByOrderByRatingsDesc()
-                    : movieRepository.findAllByOrderByRatingsAsc();
+                    ? movieRepository.findAllByOrderByRatingsDescTitleAsc()
+                    : movieRepository.findAllByOrderByRatingsAscTitleAsc();
             case "startYear" -> descending
-                    ? movieRepository.findAllByOrderByStartYearDesc()
-                    : movieRepository.findAllByOrderByStartYearAsc();
+                    ? movieRepository.findAllByOrderByStartYearDescTitleAsc()
+                    : movieRepository.findAllByOrderByStartYearAscTitleAsc();
+            case "numVotes" -> descending
+                    ? movieRepository.findAllByOrderByNumVotesDescTitleAsc()
+                    : movieRepository.findAllByOrderByNumVotesAscTitleAsc();
             default -> movieRepository.findAll(buildSort(criterion, direction));
         };
     }
@@ -98,9 +101,9 @@ public class MovieService {
 
         Sort.Order primary = new Sort.Order(sortDirection, property);
         if ("title".equals(property)) {
-            primary = primary.ignoreCase();
+            return Sort.by(primary.ignoreCase());
         }
-        // Tie-break by title so ordering is deterministic
+        // Tie-break by title ascending (case-insensitive) so ordering is deterministic
         return Sort.by(primary, Sort.Order.asc("title").ignoreCase());
     }
 
