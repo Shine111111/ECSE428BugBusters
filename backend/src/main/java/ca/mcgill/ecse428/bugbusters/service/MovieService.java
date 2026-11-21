@@ -79,7 +79,7 @@ public class MovieService {
      */
     public List<Movie> sortAllMovies(String criterion, String direction) {
         String property = toSortProperty(criterion);
-        boolean descending = toSortDirection(direction) == Sort.Direction.DESC;
+        boolean descending = SortDirection.fromString(direction).isDescending();
 
         return switch (property) {
             case "ratings" -> descending
@@ -94,7 +94,7 @@ public class MovieService {
 
     private Sort buildSort(String criterion, String direction) {
         String property = toSortProperty(criterion);
-        Sort.Direction sortDirection = toSortDirection(direction);
+        Sort.Direction sortDirection = SortDirection.fromString(direction).toSpringDirection();
 
         Sort.Order primary = new Sort.Order(sortDirection, property);
         if ("title".equals(property)) {
@@ -112,15 +112,6 @@ public class MovieService {
             case "views" -> "numVotes";
             case "release_year", "year", "start_year" -> "startYear";
             default -> throw new IllegalArgumentException("Invalid sort criterion");
-        };
-    }
-
-    private Sort.Direction toSortDirection(String direction) {
-        String normalized = direction == null ? "" : direction.trim().toLowerCase();
-        return switch (normalized) {
-            case "ascending", "asc" -> Sort.Direction.ASC;
-            case "descending", "desc" -> Sort.Direction.DESC;
-            default -> throw new IllegalArgumentException("Invalid sort direction");
         };
     }
 }
