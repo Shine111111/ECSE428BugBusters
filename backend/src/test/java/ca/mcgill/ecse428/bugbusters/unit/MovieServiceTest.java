@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -286,7 +287,7 @@ public class MovieServiceTest {
         @Test
         @DisplayName("Sort whole catalog by release year ascending uses derived repository query")
         void testSortAllMoviesByYearAscending() {
-            when(movieRepository.findAllByOrderByStartYearAsc())
+            when(movieRepository.findAllByOrderByStartYearAscTitleAsc())
                     .thenReturn(List.of(pulpFiction, darkKnight, inception, djangoUnchained, interstellar));
 
             List<Movie> results = movieService.sortAllMovies("release_year", "ascending");
@@ -295,19 +296,19 @@ public class MovieServiceTest {
                     List.of("Pulp Fiction", "The Dark Knight", "Inception", "Django Unchained", "Interstellar"),
                     results.stream().map(Movie::getTitle).toList()
             );
-            verify(movieRepository, times(1)).findAllByOrderByStartYearAsc();
+            verify(movieRepository, times(1)).findAllByOrderByStartYearAscTitleAsc();
         }
 
         @Test
         @DisplayName("Sort whole catalog by rating descending uses derived repository query")
         void testSortAllMoviesByRatingDescending() {
-            when(movieRepository.findAllByOrderByRatingsDesc())
+            when(movieRepository.findAllByOrderByRatingsDescTitleAsc())
                     .thenReturn(List.of(darkKnight, pulpFiction, inception, interstellar, djangoUnchained));
 
             List<Movie> results = movieService.sortAllMovies("rating", "descending");
 
             assertEquals(5, results.size());
-            verify(movieRepository, times(1)).findAllByOrderByRatingsDesc();
+            verify(movieRepository, times(1)).findAllByOrderByRatingsDescTitleAsc();
         }
 
         @Test
@@ -375,5 +376,45 @@ public class MovieServiceTest {
             assertEquals("Invalid sort direction", exception.getMessage());
             verifyNoInteractions(movieRepository);
         }
+
+        @Test
+        @DisplayName("Sorting by title does not duplicate the title tie-breaker")
+        void testSortMovies_TitleSingleSortOrder() {
+            ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
+            when(movieRepository.findByMovieIdIn(anyList(), sortCaptor.capture())).thenReturn(allMovies());
+
+            movieService.sortMovies(allMovies(), "title", "descending");
+
+            List<Sort.Order> orders = sortCaptor.getValue().toList();
+            assertEquals(1, orders.size());
+            assertEquals("title", orders.get(0).getProperty());
+            assertEquals(Sort.Direction.DESC, orders.get(0).getDirection());
+        }
+
+        @Test
+        @DisplayName("Sorting a single-movie list returns that movie without error")
+        void testSortMovies_SingleMovieEdgeCase() {
+            when(movieRepository.findByMovieIdIn(eq(List.of("tt1375666")), any(Sort.class)))
+                    .thenReturn(List.of(inception));
+
+            List<Movie> results = movieService.sortMovies(List.of(inception), "views", "ascending");
+
+            assertEquals(1, results.size());
+            assertEquals("Inception", results.get(0).getTitle());
+        }
+
+        @Test
+        @DisplayName("Sort whole catalog by views descending uses tie-broken repository query")
+        void testSortAllMoviesByViewsDescending() {
+            when(movieRepository.findAllByOrderByNumVotesDescTitleAsc())
+                    .thenReturn(List.of(darkKnight, inception, pulpFiction, interstellar, djangoUnchained));
+
+            List<Movie> results = movieService.sortAllMovies("views", "descending");
+
+            assertEquals(5, results.size());
+            verify(movieRepository, times(1)).findAllByOrderByNumVotesDescTitleAsc();
+        }
+
+
     }
 }

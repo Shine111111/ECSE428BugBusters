@@ -130,65 +130,84 @@ class MovieServiceSortDirectionTest {
     @Test
     @DisplayName("sortAllMovies rating ascending uses only the ascending query")
     void testSortAllRatingAscending() {
-        when(movieRepository.findAllByOrderByRatingsAsc()).thenReturn(catalog);
+        when(movieRepository.findAllByOrderByRatingsAscTitleAsc()).thenReturn(catalog);
 
         movieService.sortAllMovies("rating", "ascending");
 
-        verify(movieRepository).findAllByOrderByRatingsAsc();
-        verify(movieRepository, never()).findAllByOrderByRatingsDesc();
+        verify(movieRepository).findAllByOrderByRatingsAscTitleAsc();
+        verify(movieRepository, never()).findAllByOrderByRatingsDescTitleAsc();
     }
 
     @Test
     @DisplayName("sortAllMovies rating descending uses only the descending query")
     void testSortAllRatingDescending() {
-        when(movieRepository.findAllByOrderByRatingsDesc()).thenReturn(catalog);
+        when(movieRepository.findAllByOrderByRatingsDescTitleAsc()).thenReturn(catalog);
 
         movieService.sortAllMovies("rating", "descending");
 
-        verify(movieRepository).findAllByOrderByRatingsDesc();
-        verify(movieRepository, never()).findAllByOrderByRatingsAsc();
+        verify(movieRepository).findAllByOrderByRatingsDescTitleAsc();
+        verify(movieRepository, never()).findAllByOrderByRatingsAscTitleAsc();
     }
 
     @Test
     @DisplayName("sortAllMovies release_year ascending uses only the ascending query")
     void testSortAllYearAscending() {
-        when(movieRepository.findAllByOrderByStartYearAsc()).thenReturn(catalog);
+        when(movieRepository.findAllByOrderByStartYearAscTitleAsc()).thenReturn(catalog);
 
         movieService.sortAllMovies("release_year", "asc");
 
-        verify(movieRepository).findAllByOrderByStartYearAsc();
-        verify(movieRepository, never()).findAllByOrderByStartYearDesc();
+        verify(movieRepository).findAllByOrderByStartYearAscTitleAsc();
+        verify(movieRepository, never()).findAllByOrderByStartYearDescTitleAsc();
     }
 
     @Test
     @DisplayName("sortAllMovies release_year descending uses only the descending query")
     void testSortAllYearDescending() {
-        when(movieRepository.findAllByOrderByStartYearDesc()).thenReturn(catalog);
+        when(movieRepository.findAllByOrderByStartYearDescTitleAsc()).thenReturn(catalog);
 
         movieService.sortAllMovies("release_year", "desc");
 
-        verify(movieRepository).findAllByOrderByStartYearDesc();
-        verify(movieRepository, never()).findAllByOrderByStartYearAsc();
+        verify(movieRepository).findAllByOrderByStartYearDescTitleAsc();
+        verify(movieRepository, never()).findAllByOrderByStartYearAscTitleAsc();
     }
 
-    @ParameterizedTest(name = "sortAllMovies {0} {1} -> {2} {3}")
+    @ParameterizedTest(name = "sortAllMovies title {0} -> title {1}")
     @CsvSource({
-            "title, ascending,  title,    ASC",
-            "title, descending, title,    DESC",
-            "views, ascending,  numVotes, ASC",
-            "views, descending, numVotes, DESC"
+            "ascending,  ASC",
+            "descending, DESC"
     })
-    @DisplayName("sortAllMovies passes the requested direction to findAll(Sort)")
-    void testSortAllFindAllDirection(String criterion, String direction,
-                                     String expectedProperty, Sort.Direction expectedDirection) {
+    @DisplayName("sortAllMovies title passes the requested direction to findAll(Sort)")
+    void testSortAllTitleFindAllDirection(String direction, Sort.Direction expectedDirection) {
         ArgumentCaptor<Sort> sortCaptor = ArgumentCaptor.forClass(Sort.class);
         when(movieRepository.findAll(sortCaptor.capture())).thenReturn(catalog);
 
-        movieService.sortAllMovies(criterion, direction);
+        movieService.sortAllMovies("title", direction);
 
-        Sort.Order order = sortCaptor.getValue().getOrderFor(expectedProperty);
+        Sort.Order order = sortCaptor.getValue().getOrderFor("title");
         assertNotNull(order);
         assertEquals(expectedDirection, order.getDirection());
+    }
+
+    @Test
+    @DisplayName("sortAllMovies views ascending uses only the ascending query")
+    void testSortAllViewsAscending() {
+        when(movieRepository.findAllByOrderByNumVotesAscTitleAsc()).thenReturn(catalog);
+
+        movieService.sortAllMovies("views", "ascending");
+
+        verify(movieRepository).findAllByOrderByNumVotesAscTitleAsc();
+        verify(movieRepository, never()).findAllByOrderByNumVotesDescTitleAsc();
+    }
+
+    @Test
+    @DisplayName("sortAllMovies views descending uses only the descending query")
+    void testSortAllViewsDescending() {
+        when(movieRepository.findAllByOrderByNumVotesDescTitleAsc()).thenReturn(catalog);
+
+        movieService.sortAllMovies("views", "descending");
+
+        verify(movieRepository).findAllByOrderByNumVotesDescTitleAsc();
+        verify(movieRepository, never()).findAllByOrderByNumVotesAscTitleAsc();
     }
 
     @ParameterizedTest(name = "sortAllMovies rejects direction \"{0}\"")
