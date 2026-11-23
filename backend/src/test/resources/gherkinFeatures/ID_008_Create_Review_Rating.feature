@@ -1,4 +1,4 @@
-Feature: Create a Review/Rating
+Feature: ID_008 Create a Review/Rating
 
   As a registered user
   I want to rate a movie and optionally write a review
