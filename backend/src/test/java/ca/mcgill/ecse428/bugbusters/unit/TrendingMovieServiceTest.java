@@ -87,6 +87,36 @@ class TrendingMovieServiceTest {
         assertScore("13", response.movies().get(0).trendingScore());
     }
 
+    @Test   // test that erify several eligible/ineligible movies together
+    void filtersMoviesUsingMinimumVoteThreshold() {
+        when(repository.findByNumVotesGreaterThanEqual(30000L)).thenReturn(List.of(
+                movie("eligible1", "Eligible One", "8.0", 30000, 100, 1000),
+                movie("eligible2", "Eligible Two", "7.5", 50000, 200, 2000),
+                movie("below", "Below Threshold", "9.5", 29999, 5000, 1000000)));
+
+        TrendingMoviesResponse response = service.getTrendingMovies();
+
+        assertEquals(2, response.movies().size());
+        assertTrue(titles(response).contains("Eligible One"));
+        assertTrue(titles(response).contains("Eligible Two"));
+        assertFalse(titles(response).contains("Below Threshold"));
+
+        assertTrue(response.movies().stream()
+                .allMatch(movie -> movie.numberOfVotes() >= 30000));
+    }
+
+    @Test   // test that verify several ineligible movies together
+    void excludesAllMoviesBelowMinimumVoteThreshold() {
+        when(repository.findByNumVotesGreaterThanEqual(30000L)).thenReturn(List.of(
+                movie("below1", "Below One", "9.5", 10000, 5000, 1000000),
+                movie("below2", "Below Two", "9.0", 29999, 4000, 900000)));
+
+        TrendingMoviesResponse response = service.getTrendingMovies();
+
+        assertTrue(response.movies().isEmpty());
+        assertEquals("No trending movies available", response.message());
+    }
+
     @ParameterizedTest
     @ValueSource(strings = {"rating", "votes", "comments", "views"})
     void excludesEachMissingSignalWithoutLosingValidMovies(String missingSignal) {
@@ -113,6 +143,53 @@ class TrendingMovieServiceTest {
 
         assertEquals(List.of("Zero activity"), titles(response));
         assertScore("3", response.movies().get(0).trendingScore());
+    }
+
+    @Test
+    void skipsNullMovieWithoutFailingTheRequest() {
+        List<Movie> movies = new ArrayList<>();
+        movies.add(null);
+        movies.add(movie("valid", "Valid", "8", 30000, 0, 0));
+
+        when(repository.findByNumVotesGreaterThanEqual(30000L))
+                .thenReturn(movies);
+
+        TrendingMoviesResponse response = service.getTrendingMovies();
+
+        assertEquals(List.of("Valid"), titles(response));
+        assertNull(response.message());
+    }
+
+    @Test
+    void skipsMultipleInvalidMoviesAndStillReturnsValidMovies() {
+        Movie missingRating =
+                movie("missing-rating", "Missing Rating", "9", 500000, 5000, 900000);
+        missingRating.setRatings(null);
+
+        Movie missingComments =
+                movie("missing-comments", "Missing Comments", "9", 500000, 5000, 900000);
+        missingComments.setCommentCount(null);
+
+        Movie negativeViews =
+                movie("negative-views", "Negative Views", "9", 500000, 5000, 900000);
+        negativeViews.setViewCount(-1);
+
+        Movie valid =
+                movie("valid", "Valid", "8", 30000, 0, 0);
+
+        List<Movie> movies = new ArrayList<>();
+        movies.add(missingRating);
+        movies.add(missingComments);
+        movies.add(negativeViews);
+        movies.add(valid);
+
+        when(repository.findByNumVotesGreaterThanEqual(30000L))
+                .thenReturn(movies);
+
+        TrendingMoviesResponse response = service.getTrendingMovies();
+
+        assertEquals(List.of("Valid"), titles(response));
+        assertNull(response.message());
     }
 
     @ParameterizedTest
@@ -183,6 +260,69 @@ class TrendingMovieServiceTest {
         assertEquals(List.of("aurora", "apollo", "beacon", "comet", "a-1", "a-2"),
                 response.movies().stream().map(TrendingMovieResponse::movieId).toList());
         response.movies().forEach(result -> assertScore("200", result.trendingScore()));
+    }
+
+    @Test //Test score ordering
+    void ranksMoviesByTrendingScoreDescending() {
+        when(repository.findByNumVotesGreaterThanEqual(30000L)).thenReturn(List.of(
+                movie("low", "Lower Score", "8.0", 30000, 0, 0),
+                movie("high", "Higher Score", "9.0", 50000, 1000, 10000)));
+
+        TrendingMoviesResponse response = service.getTrendingMovies();
+
+        assertEquals(List.of("Higher Score", "Lower Score"), titles(response));
+
+        assertTrue(
+                response.movies().get(0).trendingScore()
+                        .compareTo(response.movies().get(1).trendingScore()) > 0);
+    }
+
+    @Test // Test vote-count tie breaker
+    void breaksEqualTrendingScoresUsingNumberOfVotesDescending() {
+        when(repository.findByNumVotesGreaterThanEqual(30000L)).thenReturn(List.of(
+                movie("apollo", "Apollo", "8.0", 90000, 1100, 100000),
+                movie("aurora", "Aurora", "8.0", 100000, 1000, 100000)));
+
+        TrendingMoviesResponse response = service.getTrendingMovies();
+
+        assertScore("200", response.movies().get(0).trendingScore());
+        assertScore("200", response.movies().get(1).trendingScore());
+
+        assertEquals("Aurora", response.movies().get(0).title());
+        assertEquals("Apollo", response.movies().get(1).title());
+    }
+
+    @Test   //Test title tie breaker
+    void breaksScoreAndVoteTiesUsingTitleAlphabetically() {
+        when(repository.findByNumVotesGreaterThanEqual(30000L)).thenReturn(List.of(
+                movie("comet", "Comet", "8.0", 90000, 1100, 100000),
+                movie("apollo", "Apollo", "8.0", 90000, 1100, 100000),
+                movie("beacon", "Beacon", "8.0", 90000, 1100, 100000)));
+
+        TrendingMoviesResponse response = service.getTrendingMovies();
+
+        assertEquals(
+                List.of("Apollo", "Beacon", "Comet"),
+                titles(response));
+
+        response.movies().forEach(movie ->
+                assertScore("200", movie.trendingScore()));
+    }
+
+    @Test   //Test final movie-ID tie breaker
+    void breaksCompleteTiesUsingMovieId() {
+        when(repository.findByNumVotesGreaterThanEqual(30000L)).thenReturn(List.of(
+                movie("movie-3", "Duplicate", "8.0", 90000, 1100, 100000),
+                movie("movie-1", "Duplicate", "8.0", 90000, 1100, 100000),
+                movie("movie-2", "Duplicate", "8.0", 90000, 1100, 100000)));
+
+        TrendingMoviesResponse response = service.getTrendingMovies();
+
+        assertEquals(
+                List.of("movie-1", "movie-2", "movie-3"),
+                response.movies().stream()
+                        .map(TrendingMovieResponse::movieId)
+                        .toList());
     }
 
     @Test
