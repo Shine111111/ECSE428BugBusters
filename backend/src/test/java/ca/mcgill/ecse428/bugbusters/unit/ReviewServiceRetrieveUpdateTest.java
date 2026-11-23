@@ -27,7 +27,7 @@ class ReviewServiceRetrieveUpdateTest {
     }
 
     @Test
-    void getReviewsForMovieReturnsOnlyThatMovie() {
+    void ID_008_getReviewsForMovieReturnsOnlyThatMovie() {
         service.storeReview(new Review("Hamza", "Cars2", 4, null));
         service.storeReview(new Review("Robert", "Cars2", 2, null));
         service.storeReview(new Review("Hamza", "Up", 5, null));
@@ -38,12 +38,12 @@ class ReviewServiceRetrieveUpdateTest {
     }
 
     @Test
-    void getReviewsForMovieReturnsEmptyListWhenNoneExist() {
+    void ID_008_getReviewsForMovieReturnsEmptyListWhenNoneExist() {
         assertTrue(service.getReviewsForMovie("Cars2").isEmpty());
     }
 
     @Test
-    void updateChangesRatingAndText() {
+    void ID_008_updateChangesRatingAndText() {
         service.storeReview(new Review("Hamza", "Cars2", 4, "Great movie"));
         service.updateReview("Hamza", "Cars2", 2, "Worse on rewatch");
         Review stored = repository.findByUserAndMovie("Hamza", "Cars2");
@@ -53,14 +53,14 @@ class ReviewServiceRetrieveUpdateTest {
     }
 
     @Test
-    void updateCanClearReviewText() {
+    void ID_008_updateCanClearReviewText() {
         service.storeReview(new Review("Hamza", "Cars2", 4, "Great movie"));
         service.updateReview("Hamza", "Cars2", 4, null);
         assertNull(repository.findByUserAndMovie("Hamza", "Cars2").getReviewText());
     }
 
     @Test
-    void updateNonexistentReviewIsRejected() {
+    void ID_008_updateNonexistentReviewIsRejected() {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> service.updateReview("Hamza", "Cars2", 3, null));
         assertEquals("Review does not exist", e.getMessage());
@@ -69,7 +69,7 @@ class ReviewServiceRetrieveUpdateTest {
 
     @ParameterizedTest
     @ValueSource(ints = {0, 6})
-    void updateWithInvalidRatingLeavesReviewUnchanged(int stars) {
+    void ID_008_updateWithInvalidRatingLeavesReviewUnchanged(int stars) {
         service.storeReview(new Review("Hamza", "Cars2", 4, "Great movie"));
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> service.updateReview("Hamza", "Cars2", stars, "Changed"));
@@ -80,7 +80,7 @@ class ReviewServiceRetrieveUpdateTest {
     }
 
     @Test
-    void updateDoesNotAffectOtherUsersReviews() {
+    void ID_008_updateDoesNotAffectOtherUsersReviews() {
         service.storeReview(new Review("Hamza", "Cars2", 4, null));
         service.storeReview(new Review("Robert", "Cars2", 2, null));
         service.updateReview("Hamza", "Cars2", 1, null);

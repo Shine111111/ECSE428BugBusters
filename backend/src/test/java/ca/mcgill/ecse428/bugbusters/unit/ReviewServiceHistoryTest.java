@@ -23,7 +23,7 @@ class ReviewServiceHistoryTest {
     }
 
     @Test
-    void returnsAllReviewsForUser() {
+    void ID_008_returnsAllReviewsForUser() {
         service.storeReview(new Review("Hamza", "Cars2", 4, "Great movie"));
         service.storeReview(new Review("Hamza", "Up", 5, null));
         service.storeReview(new Review("Hamza", "Cars3", 2, "Too slow"));
@@ -35,7 +35,7 @@ class ReviewServiceHistoryTest {
     }
 
     @Test
-    void returnsOnlyReviewsBelongingToUser() {
+    void ID_008_returnsOnlyReviewsBelongingToUser() {
         service.storeReview(new Review("Hamza", "Cars2", 4, null));
         service.storeReview(new Review("Robert", "Cars2", 2, null));
         service.storeReview(new Review("Robert", "Up", 3, null));
@@ -46,7 +46,7 @@ class ReviewServiceHistoryTest {
     }
 
     @Test
-    void returnsEmptyListForUserWithNoReviews() {
+    void ID_008_returnsEmptyListForUserWithNoReviews() {
         service.storeReview(new Review("Robert", "Cars2", 2, null));
         List<Review> history = service.getReviewsForUser("Hamza");
         assertNotNull(history);
@@ -54,12 +54,12 @@ class ReviewServiceHistoryTest {
     }
 
     @Test
-    void returnsEmptyListWhenNoReviewsExist() {
+    void ID_008_returnsEmptyListWhenNoReviewsExist() {
         assertTrue(service.getReviewsForUser("Hamza").isEmpty());
     }
 
     @Test
-    void userIdMatchIsExact() {
+    void ID_008_userIdMatchIsExact() {
         service.storeReview(new Review("Hamza", "Cars2", 4, null));
         service.storeReview(new Review("Hamza2", "Up", 5, null));
         assertEquals(1, service.getReviewsForUser("Hamza").size());
@@ -67,7 +67,7 @@ class ReviewServiceHistoryTest {
     }
 
     @Test
-    void historyReflectsUpdatedReview() {
+    void ID_008_historyReflectsUpdatedReview() {
         service.storeReview(new Review("Hamza", "Cars2", 4, "Great movie"));
         service.updateReview("Hamza", "Cars2", 2, "Worse on rewatch");
         List<Review> history = service.getReviewsForUser("Hamza");

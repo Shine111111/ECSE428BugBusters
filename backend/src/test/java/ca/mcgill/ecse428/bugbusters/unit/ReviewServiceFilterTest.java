@@ -30,7 +30,7 @@ class ReviewServiceFilterTest {
     }
 
     @Test
-    void returnsReviewsMatchingMovieAndRating() {
+    void ID_008_returnsReviewsMatchingMovieAndRating() {
         List<Review> result = service.getReviewsForMovieByRating("Cars2", 4);
         assertEquals(2, result.size());
         assertEquals(Set.of("Hamza", "Robert"),
@@ -40,26 +40,26 @@ class ReviewServiceFilterTest {
     }
 
     @Test
-    void excludesSameRatingOnOtherMovies() {
+    void ID_008_excludesSameRatingOnOtherMovies() {
         List<Review> result = service.getReviewsForMovieByRating("Up", 4);
         assertEquals(1, result.size());
         assertEquals("Hamza", result.get(0).getUserId());
     }
 
     @Test
-    void returnsEmptyListWhenNoReviewHasRating() {
+    void ID_008_returnsEmptyListWhenNoReviewHasRating() {
         List<Review> result = service.getReviewsForMovieByRating("Cars2", 5);
         assertNotNull(result);
         assertTrue(result.isEmpty());
     }
 
     @Test
-    void returnsEmptyListForMovieWithNoReviews() {
+    void ID_008_returnsEmptyListForMovieWithNoReviews() {
         assertTrue(service.getReviewsForMovieByRating("Cars3", 4).isEmpty());
     }
 
     @Test
-    void filterReflectsUpdatedRating() {
+    void ID_008_filterReflectsUpdatedRating() {
         service.updateReview("Alice", "Cars2", 4, "Grew on me");
         assertEquals(3, service.getReviewsForMovieByRating("Cars2", 4).size());
         assertTrue(service.getReviewsForMovieByRating("Cars2", 2).isEmpty());
@@ -67,13 +67,13 @@ class ReviewServiceFilterTest {
 
     @ParameterizedTest
     @ValueSource(ints = {1, 2, 3, 4, 5})
-    void acceptsEveryValidRating(int stars) {
+    void ID_008_acceptsEveryValidRating(int stars) {
         assertNotNull(service.getReviewsForMovieByRating("Cars2", stars));
     }
 
     @ParameterizedTest
     @ValueSource(ints = {0, -1, 6, 100})
-    void rejectsRatingOutsideOneToFive(int stars) {
+    void ID_008_rejectsRatingOutsideOneToFive(int stars) {
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
                 () -> service.getReviewsForMovieByRating("Cars2", stars));
         assertEquals("Rating must be between 1 and 5", e.getMessage());
