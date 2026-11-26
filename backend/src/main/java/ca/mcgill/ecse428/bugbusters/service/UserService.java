@@ -1,5 +1,5 @@
-package ca.mcgill.ecse428.bugbusters.service;
 
+package ca.mcgill.ecse428.bugbusters.service;
 import ca.mcgill.ecse428.bugbusters.model.User;
 import ca.mcgill.ecse428.bugbusters.repository.UserRepository;
 import org.springframework.stereotype.Service;
@@ -10,6 +10,7 @@ public class UserService {
     public static final String EMAIL_ALREADY_REGISTERED = "Email already registered";
     public static final String NAME_REQUIRED = "Name is required";
     public static final String INVALID_CREDENTIALS = "Invalid email or password"; // login error
+    public static final String PASSWORD_REQUIRED = "Password is required"; // login error
 
     private final UserRepository userRepository;
     private final UserIdGenerator userIdGenerator;
@@ -41,6 +42,13 @@ public class UserService {
         // same format as sign-up: trimmed + lowercase
         String normalizedEmail = User.normalizeEmail(email);
 
+        // TID015 - reject blank or malformed input before querying the database
+        EmailValidator.validate(normalizedEmail); // "Email is required" / "Invalid email format"
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException(PASSWORD_REQUIRED);
+        }
+
+        // unknown email and wrong password share the same message so accounts can't be guessed
         // no account with this email
         User user = userRepository.findByEmailIgnoreCase(normalizedEmail)
                 .orElseThrow(() -> new IllegalArgumentException(INVALID_CREDENTIALS));
