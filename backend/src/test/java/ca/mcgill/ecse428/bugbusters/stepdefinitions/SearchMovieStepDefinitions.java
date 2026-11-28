@@ -38,6 +38,16 @@ public class SearchMovieStepDefinitions {
     @Autowired
     private RoleRepository roleRepository;
 
+    @Autowired
+    private MovieScenarioContext scenarioContext;
+
+    @io.cucumber.java.Before
+    public void resetContext() {
+        scenarioContext.reset();
+        searchResults = null;
+        errorMessage = null;
+    }
+
     private List<Movie> searchResults;
     private String errorMessage;
 
@@ -75,17 +85,33 @@ public class SearchMovieStepDefinitions {
             String directorName = row.get("director");
             String actorsList = row.get("actors");
 
-            // Check if movie already exists in Supabase
-            List<Movie> existing = movieRepository.findByTitleContainingIgnoreCase(title);
+            boolean hasSortAttributes = row.containsKey("rating")
+                    || row.containsKey("views")
+                    || row.containsKey("release_year");
+
+            Integer startYear = row.get("release_year") != null && !row.get("release_year").isBlank()
+                    ? Integer.parseInt(row.get("release_year").trim()) : 2020;
+            BigDecimal ratings = row.get("rating") != null && !row.get("rating").isBlank()
+                    ? new BigDecimal(row.get("rating").trim()) : new BigDecimal("8.0");
+            Long numVotes = row.get("views") != null && !row.get("views").isBlank()
+                    ? Long.parseLong(row.get("views").trim()) : 1000L;
+
+            List<Movie> existing = hasSortAttributes
+                    ? List.of()
+                    : movieRepository.findByTitleContainingIgnoreCase(title);
+
             String movieId;
+            Movie movie;
             if (existing.isEmpty()) {
                 movieId = "test_mov_" + UUID.randomUUID().toString().substring(0, 8);
-                Movie movie = new Movie(movieId, title, genre, 2020, 120, new BigDecimal("8.0"), 1000L);
-                movieRepository.save(movie);
+                movie = new Movie(movieId, title, genre, startYear, 120, ratings, numVotes);
+                movie = movieRepository.save(movie);
                 createdMovieIds.add(movieId);
             } else {
-                movieId = existing.get(0).getMovieId();
+                movie = existing.get(0);
+                movieId = movie.getMovieId();
             }
+            scenarioContext.addCatalogMovie(movie);
 
             // Seed Director
             if (directorName != null && !directorName.isBlank()) {
@@ -114,8 +140,10 @@ public class SearchMovieStepDefinitions {
         try {
             searchResults = movieService.searchMovies(criterion, query);
             errorMessage = null;
+            scenarioContext.setErrorMessage(null);
         } catch (IllegalArgumentException e) {
             errorMessage = e.getMessage();
+            scenarioContext.setErrorMessage(errorMessage);
         }
     }
 
@@ -164,13 +192,18 @@ public class SearchMovieStepDefinitions {
         try {
             searchResults = movieService.searchMovies("title", "");
             errorMessage = null;
+            scenarioContext.setErrorMessage(null);
         } catch (IllegalArgumentException e) {
             errorMessage = e.getMessage();
+            scenarioContext.setErrorMessage(errorMessage);
         }
     }
 
     @Then("an error message {string} should be issued")
     public void an_error_message_should_be_issued(String expectedError) {
-        assertEquals(expectedError, errorMessage);
+        String actualError = scenarioContext.getErrorMessage() != null
+                ? scenarioContext.getErrorMessage()
+                : errorMessage;
+        assertEquals(expectedError, actualError);
     }
 }
