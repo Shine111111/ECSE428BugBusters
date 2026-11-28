@@ -2,9 +2,12 @@ package ca.mcgill.ecse428.bugbusters.stepdefinitions;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 import ca.mcgill.ecse428.bugbusters.model.Movie;
 import ca.mcgill.ecse428.bugbusters.service.MovieService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
@@ -13,6 +16,9 @@ import io.cucumber.java.en.When;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 public class SortMovieStepDefinitions {
 
@@ -22,15 +28,23 @@ public class SortMovieStepDefinitions {
     @Autowired
     private MovieScenarioContext scenarioContext;
 
+    @Autowired
+    private MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     private List<Movie> currentMovies;
     private List<Movie> sortedResults;
     private String warningMessage;
+    private int responseStatus;
 
     @Before
     public void resetSortState() {
         currentMovies = null;
         sortedResults = null;
         warningMessage = null;
+        responseStatus = 0;
     }
 
     private List<Movie> activeList() {
@@ -106,5 +120,56 @@ public class SortMovieStepDefinitions {
     @Then("a warning message {string} should be displayed")
     public void a_warning_message_should_be_displayed(String expectedWarning) {
         assertEquals(expectedWarning, warningMessage);
+    }
+
+    // =========================================================================
+    // Sorting search results through GET /movies/search?sortBy=&direction=
+    // =========================================================================
+
+    @When("the user calls the search endpoint for movies with {word} matching {string} sorted by {word} in {word} order")
+    public void the_user_calls_the_search_endpoint_sorted(String criterion, String query, String sortBy, String direction)
+            throws Exception {
+        callSearchEndpoint(get("/movies/search")
+                .param("criterion", criterion)
+                .param("query", query)
+                .param("sortBy", sortBy)
+                .param("direction", direction));
+    }
+
+    @When("the user calls the search endpoint for movies with {word} matching {string} sorted by {word}")
+    public void the_user_calls_the_search_endpoint_sorted_default_direction(String criterion, String query, String sortBy)
+            throws Exception {
+        callSearchEndpoint(get("/movies/search")
+                .param("criterion", criterion)
+                .param("query", query)
+                .param("sortBy", sortBy));
+    }
+
+    // A 200 response fills sortedResults (titles only); an error response fills the shared error/warning message
+    private void callSearchEndpoint(MockHttpServletRequestBuilder request) throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(request).andReturn().getResponse();
+        responseStatus = response.getStatus();
+        JsonNode body = objectMapper.readTree(response.getContentAsString());
+        if (body.isArray()) {
+            List<Movie> movies = new ArrayList<>();
+            for (JsonNode node : body) {
+                Movie movie = new Movie();
+                movie.setTitle(node.get("title").asText());
+                movies.add(movie);
+            }
+            sortedResults = movies;
+            scenarioContext.setErrorMessage(null);
+            warningMessage = null;
+        } else {
+            sortedResults = null;
+            String error = body.path("error").asText(null);
+            scenarioContext.setErrorMessage(error);
+            warningMessage = error;
+        }
+    }
+
+    @Then("the response status should be {int}")
+    public void the_response_status_should_be(int expectedStatus) {
+        assertEquals(expectedStatus, responseStatus);
     }
 }
