@@ -7,17 +7,12 @@ import ca.mcgill.ecse428.bugbusters.repository.MovieRepository;
 import ca.mcgill.ecse428.bugbusters.repository.PersonRepository;
 import ca.mcgill.ecse428.bugbusters.repository.RoleRepository;
 import ca.mcgill.ecse428.bugbusters.service.MovieService;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import io.cucumber.datatable.DataTable;
 import io.cucumber.java.After;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -28,7 +23,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 
 public class SearchMovieStepDefinitions {
 
@@ -56,11 +50,6 @@ public class SearchMovieStepDefinitions {
 
     private List<Movie> searchResults;
     private String errorMessage;
-
-    // ID017: movies the user is currently looking at (seeded catalog, or the last sorted list)
-    private List<Movie> currentMovies = new ArrayList<>();
-    private List<String> sortedTitles;
-    private int responseStatus;
 
     // Track only test IDs created during the scenario run
     private final List<String> createdMovieIds = new ArrayList<>();
@@ -95,11 +84,6 @@ public class SearchMovieStepDefinitions {
             String genre = row.get("genre");
             String directorName = row.get("director");
             String actorsList = row.get("actors");
-
-            // ID017 tables also give rating, views and release_year; ID016 tables use the defaults
-            BigDecimal rating = row.get("rating") == null ? new BigDecimal("8.0") : new BigDecimal(row.get("rating").trim());
-            Long views = row.get("views") == null ? 1000L : Long.valueOf(row.get("views").trim());
-            Integer releaseYear = row.get("release_year") == null ? 2020 : Integer.valueOf(row.get("release_year").trim());
 
             boolean hasSortAttributes = row.containsKey("rating")
                     || row.containsKey("views")
