@@ -45,10 +45,14 @@ public class SearchMovieStepDefinitions {
     private RoleRepository roleRepository;
 
     @Autowired
-    private MockMvc mockMvc;
+    private MovieScenarioContext scenarioContext;
 
-    @Autowired
-    private ObjectMapper objectMapper;
+    @io.cucumber.java.Before
+    public void resetContext() {
+        scenarioContext.reset();
+        searchResults = null;
+        errorMessage = null;
+    }
 
     private List<Movie> searchResults;
     private String errorMessage;
@@ -97,24 +101,33 @@ public class SearchMovieStepDefinitions {
             Long views = row.get("views") == null ? 1000L : Long.valueOf(row.get("views").trim());
             Integer releaseYear = row.get("release_year") == null ? 2020 : Integer.valueOf(row.get("release_year").trim());
 
-            // Check if movie already exists in Supabase
-            List<Movie> existing = movieRepository.findByTitleContainingIgnoreCase(title);
+            boolean hasSortAttributes = row.containsKey("rating")
+                    || row.containsKey("views")
+                    || row.containsKey("release_year");
+
+            Integer startYear = row.get("release_year") != null && !row.get("release_year").isBlank()
+                    ? Integer.parseInt(row.get("release_year").trim()) : 2020;
+            BigDecimal ratings = row.get("rating") != null && !row.get("rating").isBlank()
+                    ? new BigDecimal(row.get("rating").trim()) : new BigDecimal("8.0");
+            Long numVotes = row.get("views") != null && !row.get("views").isBlank()
+                    ? Long.parseLong(row.get("views").trim()) : 1000L;
+
+            List<Movie> existing = hasSortAttributes
+                    ? List.of()
+                    : movieRepository.findByTitleContainingIgnoreCase(title);
+
+            String movieId;
             Movie movie;
             if (existing.isEmpty()) {
-                String newId = "test_mov_" + UUID.randomUUID().toString().substring(0, 8);
-                movie = movieRepository.save(new Movie(newId, title, genre, releaseYear, 120, rating, views));
-                createdMovieIds.add(newId);
+                movieId = "test_mov_" + UUID.randomUUID().toString().substring(0, 8);
+                movie = new Movie(movieId, title, genre, startYear, 120, ratings, numVotes);
+                movie = movieRepository.save(movie);
+                createdMovieIds.add(movieId);
             } else {
                 movie = existing.get(0);
-                if (row.containsKey("rating") || row.containsKey("views") || row.containsKey("release_year")) {
-                    movie.setRatings(rating);
-                    movie.setNumVotes(views);
-                    movie.setStartYear(releaseYear);
-                    movie = movieRepository.save(movie);
-                }
+                movieId = movie.getMovieId();
             }
-            String movieId = movie.getMovieId();
-            currentMovies.add(movie);
+            scenarioContext.addCatalogMovie(movie);
 
             // Seed Director
             if (directorName != null && !directorName.isBlank()) {
@@ -143,8 +156,10 @@ public class SearchMovieStepDefinitions {
         try {
             searchResults = movieService.searchMovies(criterion, query);
             errorMessage = null;
+            scenarioContext.setErrorMessage(null);
         } catch (IllegalArgumentException e) {
             errorMessage = e.getMessage();
+            scenarioContext.setErrorMessage(errorMessage);
         }
     }
 
@@ -193,113 +208,18 @@ public class SearchMovieStepDefinitions {
         try {
             searchResults = movieService.searchMovies("title", "");
             errorMessage = null;
+            scenarioContext.setErrorMessage(null);
         } catch (IllegalArgumentException e) {
             errorMessage = e.getMessage();
+            scenarioContext.setErrorMessage(errorMessage);
         }
     }
 
     @Then("an error message {string} should be issued")
     public void an_error_message_should_be_issued(String expectedError) {
-        assertEquals(expectedError, errorMessage);
-    }
-
-    // =========================================================================
-    // ID017 Sort Movies
-    // =========================================================================
-
-    private void sortCurrentMovies(String criterion, String direction) {
-        try {
-            currentMovies = movieService.sortMovies(currentMovies, criterion, direction);
-            sortedTitles = currentMovies.stream().map(Movie::getTitle).toList();
-            errorMessage = null;
-        } catch (IllegalArgumentException e) {
-            sortedTitles = null;
-            errorMessage = e.getMessage();
-        }
-    }
-
-    // Accepts the criterion/direction with or without surrounding quotes
-    private static String unquote(String value) {
-        return value.length() >= 2 && value.startsWith("\"") && value.endsWith("\"")
-                ? value.substring(1, value.length() - 1)
-                : value;
-    }
-
-    @Given("the movie list is currently sorted by title is ascending order")
-    public void the_movie_list_is_currently_sorted_by_title_ascending() {
-        sortCurrentMovies("title", "ascending");
-        assertNull(errorMessage);
-    }
-
-    @Given("there are no movies in the current search results")
-    public void there_are_no_movies_in_the_current_search_results() {
-        currentMovies = new ArrayList<>();
-    }
-
-    @When("the user sorts the movies with {word} in {word} order")
-    public void the_user_sorts_the_movies_with_in_order(String criterion, String direction) {
-        sortCurrentMovies(criterion, direction);
-    }
-
-    @When("the user sorts the movies by {word} in {word} order")
-    public void the_user_sorts_the_movies_by_in_order(String criterion, String direction) {
-        sortCurrentMovies(unquote(criterion), unquote(direction));
-    }
-
-    @When("the user attempts to sort the results by {string} in {string} order")
-    public void the_user_attempts_to_sort_the_results_by_in_order(String criterion, String direction) {
-        sortCurrentMovies(criterion, direction);
-    }
-
-    @When("the user calls the search endpoint for movies with {word} matching {string} sorted by {word} in {word} order")
-    public void the_user_calls_the_search_endpoint_sorted(String criterion, String query, String sortBy, String direction)
-            throws Exception {
-        callSearchEndpoint(get("/movies/search")
-                .param("criterion", criterion)
-                .param("query", query)
-                .param("sortBy", sortBy)
-                .param("direction", direction));
-    }
-
-    @When("the user calls the search endpoint for movies with {word} matching {string} sorted by {word}")
-    public void the_user_calls_the_search_endpoint_sorted_default_direction(String criterion, String query, String sortBy)
-            throws Exception {
-        callSearchEndpoint(get("/movies/search")
-                .param("criterion", criterion)
-                .param("query", query)
-                .param("sortBy", sortBy));
-    }
-
-    private void callSearchEndpoint(MockHttpServletRequestBuilder request) throws Exception {
-        MockHttpServletResponse response = mockMvc.perform(request).andReturn().getResponse();
-        responseStatus = response.getStatus();
-        JsonNode body = objectMapper.readTree(response.getContentAsString());
-        if (body.isArray()) {
-            List<String> titles = new ArrayList<>();
-            body.forEach(movie -> titles.add(movie.get("title").asText()));
-            sortedTitles = titles;
-            errorMessage = null;
-        } else {
-            sortedTitles = null;
-            errorMessage = body.path("error").asText(null);
-        }
-    }
-
-    @Then("the response status should be {int}")
-    public void the_response_status_should_be(int expectedStatus) {
-        assertEquals(expectedStatus, responseStatus);
-    }
-
-    @Then("the sorted results should be:")
-    public void the_sorted_results_should_be(DataTable dataTable) {
-        List<String> rows = dataTable.asList();
-        List<String> expectedTitles = rows.get(0).equalsIgnoreCase("title") ? rows.subList(1, rows.size()) : rows;
-        assertNotNull(sortedTitles, "Expected sorted results but got error: " + errorMessage);
-        assertEquals(expectedTitles, sortedTitles);
-    }
-
-    @Then("a warning message {string} should be displayed")
-    public void a_warning_message_should_be_displayed(String expectedMessage) {
-        assertEquals(expectedMessage, errorMessage);
+        String actualError = scenarioContext.getErrorMessage() != null
+                ? scenarioContext.getErrorMessage()
+                : errorMessage;
+        assertEquals(expectedError, actualError);
     }
 }
